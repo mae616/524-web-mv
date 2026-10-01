@@ -21,7 +21,9 @@ class App {
 
   // UI要素
   private startOverlay = document.getElementById('start-overlay') as HTMLElement;
+  private startCloseBtn = document.getElementById('start-close-btn') as HTMLButtonElement | null;
   private startBtn = document.getElementById('start-btn') as HTMLButtonElement;
+  private brandPillBtn = document.getElementById('brand-pill-btn') as HTMLButtonElement | null;
   private diffButtons = document.querySelectorAll<HTMLButtonElement>('.diff-btn');
   private skinButtons = document.querySelectorAll<HTMLButtonElement>('.skin-btn');
   private skinNameBadge = document.getElementById('skin-name-badge') as HTMLElement | null;
@@ -102,15 +104,54 @@ class App {
   }
 
   private initEvents(): void {
-    // 1. スタートボタン（オーディオアンロック）
-    this.startBtn.addEventListener('click', async () => {
+    // 0. モバイル用グローバル・ファーストタッチ・オーディオアンロック（iOS / WebKit対策）
+    const unlockAudio = async () => {
+      await this.audioEngine.init();
+    };
+    ['touchstart', 'touchend', 'pointerdown', 'click'].forEach((evt) => {
+      window.addEventListener(evt, unlockAudio, { once: true, passive: true });
+    });
+
+    // 1. スタート/再開ボタン（オーディオアンロック ＆ セッション開始）
+    const handleStartSession = async () => {
       await this.audioEngine.init();
       this.sequencer.start();
       this.startOverlay.classList.remove('active');
       this.playIcon.textContent = '⏸';
       this.character.triggerBounce(1.2);
       this.scene.spawnLyric('524 AWAKE !', this.sequencer.getMode());
-    });
+      if (this.startCloseBtn) this.startCloseBtn.style.display = 'flex';
+      const btnText = this.startBtn.querySelector('.btn-text');
+      if (btnText) btnText.textContent = 'RESUME SESSION';
+    };
+    this.startBtn.addEventListener('click', handleStartSession);
+
+    // 1.2 ヘッダー「524 BEAT」タップでタイトル・設定モーダルを開く（動線構築）
+    if (this.brandPillBtn) {
+      this.brandPillBtn.addEventListener('click', () => {
+        // 演奏中なら一時停止してタイトル画面を表示
+        if (this.sequencer.getIsPlaying()) {
+          this.sequencer.stop();
+          this.playIcon.textContent = '▶';
+        }
+        if (this.startCloseBtn) this.startCloseBtn.style.display = 'flex';
+        const btnText = this.startBtn.querySelector('.btn-text');
+        if (btnText) btnText.textContent = 'RESUME SESSION';
+        this.startOverlay.classList.add('active');
+        this.character.triggerBounce(1.0);
+      });
+    }
+
+    // 1.3 タイトルモーダルの閉じる（✕）ボタン
+    if (this.startCloseBtn) {
+      this.startCloseBtn.addEventListener('click', async () => {
+        await this.audioEngine.init();
+        this.startOverlay.classList.remove('active');
+        this.sequencer.start();
+        this.playIcon.textContent = '⏸';
+        this.character.triggerBounce(1.1);
+      });
+    }
 
     // 1.5 難易度セレクター（EASY / NORMAL / HARD）
     this.diffButtons.forEach((btn) => {

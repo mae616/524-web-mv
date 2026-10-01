@@ -36,9 +36,10 @@
     <!-- メインCanvas -->
     <canvas id="mv-canvas"></canvas>
 
-    <!-- スタートオーバーレイ（初回ジェスチャーアンロック） -->
+    <!-- スタートオーバーレイ（初回ジェスチャーアンロック / タイトルモーダル） -->
     <div id="start-overlay" class="overlay active">
       <div class="start-card">
+        <button id="start-close-btn" class="start-close-btn" aria-label="閉じる" title="ゲームに戻る" style="display: none;">✕</button>
         <div class="avatar-preview">
           <img src="./assets/524_character.png" alt="Character 524" class="preview-img" />
         </div>
@@ -75,10 +76,10 @@
 
     <!-- Duolingo風: ライブ・ステータスヘッダー -->
     <header class="duo-header">
-      <div class="brand-pill">
+      <button id="brand-pill-btn" class="brand-pill" aria-label="タイトル・設定画面を開く" title="タイトル画面を開く (難易度・スキン変更)">
         <span class="brand-dot"></span>
         <span class="brand-title">524 BEAT</span>
-      </div>
+      </button>
 
       <!-- グルーヴプログレスバー -->
       <div class="groove-progress-wrapper" title="グルーヴゲージ (満タンでFEVER!)">

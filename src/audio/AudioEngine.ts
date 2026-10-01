@@ -18,20 +18,38 @@ export class AudioEngine {
   private isInitialized: boolean = false;
 
   private frequencyData: Uint8Array<ArrayBuffer> | null = null;
+  private isIosUnlocked: boolean = false;
 
   /**
-   * ユーザージェスチャーでオーディオコンテキストを初期化/再開
+   * モバイル・デスクトップ両対応の完全オーディオ初期化＆アンロック
    */
   public async init(): Promise<void> {
-    if (this.isInitialized && this.ctx) {
-      if (this.ctx.state === 'suspended') {
-        await this.ctx.resume();
-      }
-      return;
+    if (!this.ctx) {
+      const AudioContextClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      this.ctx = new AudioContextClass();
     }
 
-    const AudioContextClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-    this.ctx = new AudioContextClass();
+    if (this.ctx.state === 'suspended') {
+      try {
+        await this.ctx.resume();
+      } catch (_) {}
+    }
+
+    // iOS / Android WebKit用ダミー無音バッファ再生によるハードウェアアンロック
+    try {
+      const buffer = this.ctx.createBuffer(1, 1, 22050);
+      const source = this.ctx.createBufferSource();
+      source.buffer = buffer;
+      source.connect(this.ctx.destination);
+      source.start(0);
+    } catch (_) {}
+
+    // iOSサイレントスイッチ対策（無音WAVによるPlaybackオーディオセッション昇格）
+    this.unlockIosAudioSession();
+
+    if (this.isInitialized) {
+      return;
+    }
 
     // マスターゲイン
     this.masterGain = this.ctx.createGain();
@@ -64,7 +82,6 @@ export class AudioEngine {
 
     // ルーティング
     // synth -> filterNode -> masterGain -> compressor -> analyser -> destination
-    // delayフィードバックループ
     this.filterNode.connect(this.masterGain);
     this.masterGain.connect(this.compressor);
     this.compressor.connect(this.analyser);
@@ -79,9 +96,33 @@ export class AudioEngine {
     this.synth = new Synth(this.ctx, this.filterNode);
     this.isInitialized = true;
 
-    if (this.ctx.state === 'suspended') {
-      await this.ctx.resume();
+    // 画面復帰時の自動再開リスナー
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible' && this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume().catch(() => {});
+        }
+      });
     }
+  }
+
+  /**
+   * iOSのマナーモード（消音スイッチ）貫通＆メディアセッション初期化
+   */
+  private unlockIosAudioSession(): void {
+    if (this.isIosUnlocked || typeof document === 'undefined') return;
+    try {
+      const silenceWav = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
+      const audio = new Audio(silenceWav);
+      audio.volume = 0.01;
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise.then(() => {
+          this.isIosUnlocked = true;
+          audio.pause();
+        }).catch(() => {});
+      }
+    } catch (_) {}
   }
 
   public getContext(): AudioContext | null {
