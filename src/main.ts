@@ -243,26 +243,42 @@ class App {
       setTimeout(() => this.slingBionBtn?.classList.remove('active'), 120);
     });
 
-    // 10. キーボードショートカット（1〜5, Space: POYON, Shift+Space/Enter: BION, F, M）
+    // 10. キーボードショートカット（POYON/BION代替キー & ホームポジション対応）
     window.addEventListener('keydown', (e) => {
       if (e.repeat) return;
 
-      if (e.code === 'Space') {
-        e.preventDefault();
-        if (e.shiftKey) {
-          this.rhythmGame.handleBionInput();
-          this.slingBionBtn?.classList.add('active');
-          setTimeout(() => this.slingBionBtn?.classList.remove('active'), 120);
-        } else {
-          this.rhythmGame.handlePoyonInput();
-          this.slingPoyonBtn?.classList.add('active');
-          setTimeout(() => this.slingPoyonBtn?.classList.remove('active'), 120);
-        }
-      } else if (e.code === 'Enter' || e.code === 'ArrowDown') {
+      const keyLower = e.key.toLowerCase();
+      const code = e.code;
+
+      // --- BION（大引き）の代替キー群 ---
+      // Enter, 7, B, Shift+Space, ArrowDown, ArrowRight, NumpadEnter
+      const isBionKey = code === 'Enter' ||
+                        code === 'NumpadEnter' ||
+                        e.key === '7' ||
+                        keyLower === 'b' ||
+                        code === 'ArrowDown' ||
+                        code === 'ArrowRight' ||
+                        (code === 'Space' && e.shiftKey);
+
+      // --- POYON（ちょい引き）の代替キー群 ---
+      // Space, 6, P, C, V, ArrowLeft
+      const isPoyonKey = (code === 'Space' && !e.shiftKey) ||
+                         e.key === '6' ||
+                         keyLower === 'p' ||
+                         keyLower === 'c' ||
+                         keyLower === 'v' ||
+                         code === 'ArrowLeft';
+
+      if (isBionKey) {
         e.preventDefault();
         this.rhythmGame.handleBionInput();
         this.slingBionBtn?.classList.add('active');
         setTimeout(() => this.slingBionBtn?.classList.remove('active'), 120);
+      } else if (isPoyonKey) {
+        e.preventDefault();
+        this.rhythmGame.handlePoyonInput();
+        this.slingPoyonBtn?.classList.add('active');
+        setTimeout(() => this.slingPoyonBtn?.classList.remove('active'), 120);
       } else if (e.key >= '1' && e.key <= '5') {
         const idx = parseInt(e.key, 10) - 1;
         this.rhythmGame.handleTapInput(idx);
@@ -270,11 +286,18 @@ class App {
           this.rhythmPads[idx].classList.add('active');
           setTimeout(() => this.rhythmPads[idx]?.classList.remove('active'), 120);
         }
-      } else if (e.key.toLowerCase() === 'f') {
-        // フィーバー切替
-        const nextMode = this.sequencer.getMode() === 'fever' ? 'groove' : 'fever';
-        this.setMode(nextMode);
-      } else if (e.key.toLowerCase() === 'm') {
+      } else if (['a', 's', 'd', 'f', 'g'].includes(keyLower)) {
+        // ホームポジション（A, S, D, F, G）による1〜5タップ
+        const keyMap: Record<string, number> = { a: 0, s: 1, d: 2, f: 3, g: 4 };
+        const idx = keyMap[keyLower];
+        if (idx !== undefined) {
+          this.rhythmGame.handleTapInput(idx);
+          if (this.rhythmPads[idx]) {
+            this.rhythmPads[idx].classList.add('active');
+            setTimeout(() => this.rhythmPads[idx]?.classList.remove('active'), 120);
+          }
+        }
+      } else if (keyLower === 'm') {
         const isMuted = this.audioEngine.toggleMute();
         this.muteIcon.textContent = isMuted ? '🔇' : '🔊';
       }

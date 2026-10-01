@@ -128,25 +128,42 @@
     <main class="hud-dock-wrapper">
       <!-- 5レーン・タップパッド（1〜5キー or タップ）＆ 引っ張りスリング（POYON / BION） -->
       <div class="rhythm-pad-bar">
-        <button class="rhythm-pad" data-lane="0"><span class="pad-num">1</span></button>
-        <button class="rhythm-pad" data-lane="1"><span class="pad-num">2</span></button>
-        <button class="rhythm-pad" data-lane="2"><span class="pad-num">3</span></button>
-        <button class="rhythm-pad" data-lane="3"><span class="pad-num">4</span></button>
-        <button class="rhythm-pad" data-lane="4"><span class="pad-num">5</span></button>
+        <button class="rhythm-pad" data-lane="0" title="1キー or Aキー">
+          <span class="pad-num">1</span>
+          <span class="pad-sub-key">A</span>
+        </button>
+        <button class="rhythm-pad" data-lane="1" title="2キー or Sキー">
+          <span class="pad-num">2</span>
+          <span class="pad-sub-key">S</span>
+        </button>
+        <button class="rhythm-pad" data-lane="2" title="3キー or Dキー">
+          <span class="pad-num">3</span>
+          <span class="pad-sub-key">D</span>
+        </button>
+        <button class="rhythm-pad" data-lane="3" title="4キー or Fキー">
+          <span class="pad-num">4</span>
+          <span class="pad-sub-key">F</span>
+        </button>
+        <button class="rhythm-pad" data-lane="4" title="5キー or Gキー">
+          <span class="pad-num">5</span>
+          <span class="pad-sub-key">G</span>
+        </button>
         <div class="pad-divider"></div>
-        <button class="rhythm-sling-btn poyon" id="sling-poyon-btn" title="ちょい引き (Space / 引っ張り小)">
+        <button class="rhythm-sling-btn poyon" id="sling-poyon-btn" title="ちょい引き (Space / P / 6 / Cキー / ちょいドラッグ)">
           <span class="sling-icon">🤏</span>
           <span class="sling-text">POYON</span>
+          <span class="sling-sub-key">Space / P</span>
         </button>
-        <button class="rhythm-sling-btn bion" id="sling-bion-btn" title="大引き (Shift+Space / Enter / 引っ張り大)">
+        <button class="rhythm-sling-btn bion" id="sling-bion-btn" title="大引き (Enter / B / 7 / ↓キー / 大ドラッグ)">
           <span class="sling-icon">🚀</span>
           <span class="sling-text">BION</span>
+          <span class="sling-sub-key">Enter / B</span>
         </button>
       </div>
 
       <!-- 統合フローティング・ピルドック -->
       <div class="pill-dock">
-        <button id="play-pause-btn" class="dock-play-btn" aria-label="再生・一時停止" title="Space">
+        <button id="play-pause-btn" class="dock-play-btn" aria-label="再生・一時停止" title="再生・一時停止">
           <span id="play-icon">⏸</span>
         </button>
 
@@ -172,11 +189,12 @@
         </div>
       </div>
 
-      <!-- 操作ヒントチップス -->
+      <!-- 操作ヒントチップス（代替キーも明示） -->
       <div class="hint-chips">
-        <span class="chip"><kbd>1-5</kbd> ノーツ叩き</span>
-        <span class="chip"><kbd>Drag / Space</kbd> POYON引っ張り</span>
-        <span class="chip"><kbd>Mouse</kbd> 音響フィルター</span>
+        <span class="chip"><kbd>1-5</kbd> / <kbd>A-G</kbd> ノーツ</span>
+        <span class="chip"><kbd>Space</kbd> / <kbd>P</kbd> / <kbd>6</kbd> POYON</span>
+        <span class="chip"><kbd>Enter</kbd> / <kbd>B</kbd> / <kbd>7</kbd> / <kbd>↓</kbd> BION</span>
+        <span class="chip"><kbd>Drag</kbd> 524引っ張り</span>
       </div>
     </main>
 
