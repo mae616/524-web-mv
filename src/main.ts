@@ -2,6 +2,7 @@ import { AudioEngine } from './audio/AudioEngine';
 import { MusicSequencer, PlayMode, BeatEvent } from './audio/MusicSequencer';
 import { Character524 } from './character/Character524';
 import { VisualScene } from './visuals/VisualScene';
+import { RhythmGame } from './game/RhythmGame';
 
 class App {
   private canvas: HTMLCanvasElement;
@@ -11,6 +12,7 @@ class App {
   private sequencer: MusicSequencer;
   private character: Character524;
   private scene: VisualScene;
+  private rhythmGame: RhythmGame;
 
   private lastTime: number = 0;
   private dpr: number = 1;
@@ -28,6 +30,13 @@ class App {
   private modeButtons = document.querySelectorAll<HTMLButtonElement>('.dock-segment-btn');
   private eqBars = document.querySelectorAll<HTMLElement>('.eq-bar');
 
+  // Duolingo風HUD要素 ＆ リズムパッド
+  private heartsCount = document.getElementById('hearts-count') as HTMLElement;
+  private comboCount = document.getElementById('combo-count') as HTMLElement;
+  private scoreVal = document.getElementById('score-val') as HTMLElement;
+  private grooveBar = document.getElementById('groove-bar') as HTMLElement;
+  private rhythmPads = document.querySelectorAll<HTMLButtonElement>('.rhythm-pad');
+
   constructor() {
     this.canvas = document.getElementById('mv-canvas') as HTMLCanvasElement;
     this.ctx = this.canvas.getContext('2d')!;
@@ -36,8 +45,10 @@ class App {
     this.sequencer = new MusicSequencer(this.audioEngine);
     this.character = new Character524(0, 0, 130);
     this.scene = new VisualScene(window.innerWidth, window.innerHeight);
+    this.rhythmGame = new RhythmGame(this.audioEngine, this.sequencer, this.character, this.scene);
 
     this.initEvents();
+    this.syncGameStateToHUD();
     this.resize();
     window.addEventListener('resize', () => this.resize());
 
@@ -142,9 +153,11 @@ class App {
         }
         // ランダム音階
         const noteIndex = Math.floor((x / this.width) * 5);
-        this.audioEngine.triggerScaleNote(noteIndex);
-
-        this.scene.spawnLyric('♪', this.sequencer.getMode(), x, y);
+        this.rhythmGame.handleTapInput(noteIndex);
+        if (this.rhythmPads[noteIndex]) {
+          this.rhythmPads[noteIndex].classList.add('active');
+          setTimeout(() => this.rhythmPads[noteIndex]?.classList.remove('active'), 120);
+        }
       }
     });
 
@@ -172,27 +185,40 @@ class App {
       if (this.character.isDragging) {
         const result = this.character.endDrag();
         if (result && result.tension > 0.08) {
-          // ビヨ〜ン♪音とリリック
-          this.audioEngine.triggerBoing(result.tension);
-          this.scene.spawnLyric('BOING !', this.sequencer.getMode(), this.character.x, this.character.y - 80);
+          // 引っ張りピョン（POYON）判定トリガー
+          this.rhythmGame.handlePoyonInput();
+          this.scene.spawnLyric('POYON !', this.sequencer.getMode(), this.character.x, this.character.y - 80);
           this.scene.cameraShake = 6 * result.tension;
         }
       }
     });
 
-    // 8. キーボードショートカット
+    // 8. 5レーン・タップパッド（1〜5）のタップ・クリック操作
+    this.rhythmPads.forEach((pad) => {
+      const lane = parseInt(pad.dataset.lane || '0', 10);
+      const trigger = (e: Event) => {
+        e.stopPropagation();
+        this.rhythmGame.handleTapInput(lane);
+        pad.classList.add('active');
+        setTimeout(() => pad.classList.remove('active'), 120);
+      };
+      pad.addEventListener('pointerdown', trigger);
+    });
+
+    // 9. キーボードショートカット（1〜5, Space, F, M）
     window.addEventListener('keydown', (e) => {
       if (e.repeat) return;
 
       if (e.code === 'Space') {
         e.preventDefault();
-        this.character.triggerBounce(1.4);
-        this.audioEngine.triggerScaleNote(2);
-        this.scene.spawnLyric('JUMP !', this.sequencer.getMode());
+        this.rhythmGame.handlePoyonInput();
       } else if (e.key >= '1' && e.key <= '5') {
         const idx = parseInt(e.key, 10) - 1;
-        this.audioEngine.triggerScaleNote(idx);
-        this.character.triggerBounce(0.8);
+        this.rhythmGame.handleTapInput(idx);
+        if (this.rhythmPads[idx]) {
+          this.rhythmPads[idx].classList.add('active');
+          setTimeout(() => this.rhythmPads[idx]?.classList.remove('active'), 120);
+        }
       } else if (e.key.toLowerCase() === 'f') {
         // フィーバー切替
         const nextMode = this.sequencer.getMode() === 'fever' ? 'groove' : 'fever';
@@ -202,15 +228,47 @@ class App {
         this.muteIcon.textContent = isMuted ? '🔇' : '🔊';
       }
     });
+
+    // 10. 音ゲー状態更新コールバックの購読
+    this.rhythmGame.onStateChange = () => {
+      this.syncGameStateToHUD();
+    };
+  }
+
+  /**
+   * Duolingo風HUDへのゲーム状態同期
+   */
+  private syncGameStateToHUD(): void {
+    if (this.heartsCount) {
+      this.heartsCount.textContent = String(this.rhythmGame.hearts);
+    }
+    if (this.comboCount) {
+      const prevCombo = parseInt(this.comboCount.textContent || '0', 10);
+      this.comboCount.textContent = String(this.rhythmGame.combo);
+      if (this.rhythmGame.combo > prevCombo && this.rhythmGame.combo > 0) {
+        const badge = this.comboCount.closest('.stat-badge');
+        badge?.classList.remove('bounce');
+        void (badge as HTMLElement)?.offsetWidth; // reflow
+        badge?.classList.add('bounce');
+      }
+    }
+    if (this.scoreVal) {
+      this.scoreVal.textContent = this.rhythmGame.score.toLocaleString();
+    }
+    if (this.grooveBar) {
+      this.grooveBar.style.width = `${this.rhythmGame.grooveGauge}%`;
+    }
   }
 
   private setMode(mode: PlayMode): void {
     this.sequencer.setMode(mode);
+    this.character.isFeverAura = (mode === 'fever');
     this.modeButtons.forEach((b) => {
       b.classList.toggle('active', b.dataset.mode === mode);
     });
 
     if (mode === 'fever') {
+      this.character.triggerDance(2.0);
       this.scene.triggerFeverBurst();
     } else {
       this.scene.spawnLyric(`${mode.toUpperCase()} MODE`, mode);
@@ -239,6 +297,7 @@ class App {
     // 更新処理
     const mode = this.sequencer.getMode();
     this.character.update(dt, audioMetrics.overall);
+    this.rhythmGame.update(dt);
     this.scene.update(dt, mode, audioMetrics);
 
     // 描画処理
@@ -261,7 +320,10 @@ class App {
     // 3. 524 キャラクター本体と影・しずく・波紋
     this.character.draw(this.ctx);
 
-    // 4. 前景パーティクル＆リリック
+    // 4. 音ゲーノーツ・レーン・判定ライン・浮動スコア
+    this.rhythmGame.draw(this.ctx, this.width, this.height);
+
+    // 5. 前景パーティクル＆リリック
     this.scene.drawForeground(this.ctx);
 
     this.ctx.restore();

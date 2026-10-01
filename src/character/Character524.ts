@@ -65,6 +65,12 @@ export class Character524 {
   // 口の変形（0: 通常, 1: 歌う/開口）
   public mouthShape: number = 0;
 
+  // Duolingo風ライブリアクション（ダンス、汗、ハッピー、フィーバーオーラ）
+  public danceTimer: number = 0;
+  public sweatTimer: number = 0;
+  public happyTimer: number = 0;
+  public isFeverAura: boolean = false;
+
   // しずく（ドロップレット）と波紋
   public droplets: Droplet[] = [];
   public ripples: Ripple[] = [];
@@ -125,6 +131,32 @@ export class Character524 {
     setTimeout(() => { this.eyeJumps[2] = 10 * intensity; }, 70);
 
     this.mouthShape = 0.8;
+  }
+
+  /**
+   * Duolingo風: ダンスステップ（コンボ・FEVER時）
+   */
+  public triggerDance(duration: number = 0.8): void {
+    this.danceTimer = duration;
+    this.triggerBounce(1.2);
+  }
+
+  /**
+   * Duolingo風: 汗リアクション（MISS時）
+   */
+  public triggerSweat(duration: number = 1.0): void {
+    this.sweatTimer = duration;
+    this.mouthShape = -0.5;
+    this.scaleX = 0.92;
+    this.scaleY = 1.08;
+  }
+
+  /**
+   * Duolingo風: ニッコリハッピー笑顔（PERFECT時）
+   */
+  public triggerHappy(duration: number = 0.6): void {
+    this.happyTimer = duration;
+    this.triggerBounce(1.4);
   }
 
   /**
@@ -251,6 +283,26 @@ export class Character524 {
     }
     this.mouthShape = lerp(this.mouthShape, 0, dt * 6);
 
+    // Duolingo風リアクションタイマー更新
+    if (this.danceTimer > 0) {
+      this.danceTimer -= dt;
+      // ピョコピョコ左右ステップ
+      this.rotation += Math.sin(this.floatTime * 14) * 0.14;
+      this.floatY += Math.abs(Math.sin(this.floatTime * 14)) * -12;
+      this.scaleX = lerp(this.scaleX, 1.15, dt * 10);
+    }
+
+    if (this.sweatTimer > 0) {
+      this.sweatTimer -= dt;
+      // しょんぼり小刻みに震える
+      this.dragOffsetX += (Math.random() - 0.5) * 2;
+    }
+
+    if (this.happyTimer > 0) {
+      this.happyTimer -= dt;
+      this.mouthShape = 1.0;
+    }
+
     this.updateDroplets(dt);
 
     for (let i = this.ripples.length - 1; i >= 0; i--) {
@@ -348,8 +400,23 @@ export class Character524 {
         drawHeight
       );
 
-      // まばたきオーバーレイ（3つの目が個別に愛らしくパチッと閉じる）
-      if (this.isBlinking) {
+      // FEVERオーラ描画（全身からゴールドのきらめきと光背）
+      if (this.isFeverAura) {
+        ctx.save();
+        ctx.globalCompositeOperation = 'screen';
+        const auraGrad = ctx.createRadialGradient(0, 0, drawWidth * 0.35, 0, 0, drawWidth * 0.75);
+        auraGrad.addColorStop(0, 'rgba(255, 213, 56, 0.45)');
+        auraGrad.addColorStop(0.6, 'rgba(255, 107, 139, 0.25)');
+        auraGrad.addColorStop(1, 'rgba(255, 213, 56, 0)');
+        ctx.fillStyle = auraGrad;
+        ctx.beginPath();
+        ctx.arc(0, 0, drawWidth * 0.75, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      // まばたき＆ハッピー笑顔オーバーレイ（3つの目が個別に愛らしくパチッと閉じる）
+      if (this.isBlinking || this.happyTimer > 0) {
         // 3つの目の中心位置（原作SVG内の比率）
         const eyeY = -drawHeight * 0.08;
         const eyeCentersX = [-drawWidth * 0.24, 0, drawWidth * 0.25];
@@ -375,6 +442,33 @@ export class Character524 {
           ctx.arc(cx, eyeY + 2, bubbleR * 0.55, Math.PI * 1.15, Math.PI * 1.85, false);
           ctx.stroke();
         });
+      }
+
+      // Duolingo風: 汗リアクション（ミス時「あちゃ〜！」）
+      if (this.sweatTimer > 0) {
+        ctx.save();
+        const sweatX = drawWidth * 0.32;
+        const sweatY = -drawHeight * 0.38 + Math.sin(this.floatTime * 20) * 3;
+        ctx.translate(sweatX, sweatY);
+        ctx.rotate(0.2);
+
+        // 水色の水滴（ティアドロップ）
+        ctx.fillStyle = '#48dbfb';
+        ctx.strokeStyle = '#0abde3';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(0, -14);
+        ctx.bezierCurveTo(9, -2, 10, 8, 0, 11);
+        ctx.bezierCurveTo(-10, 8, -9, -2, 0, -14);
+        ctx.fill();
+        ctx.stroke();
+
+        // 汗のハイライト
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(-2.5, 3, 2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
       }
 
       ctx.restore();

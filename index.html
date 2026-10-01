@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="./assets/524_character.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>524 - Interactive Web MV</title>
+    <title>524 - Rhythm Web MV</title>
     <link rel="stylesheet" href="./src/style.css" />
   </head>
   <body>
@@ -18,20 +18,41 @@
           <img src="./assets/524_character.svg" alt="Character 524" class="preview-img" />
         </div>
         <h1 class="title">524</h1>
-        <p class="tagline">Interactive Web Music Video</p>
+        <p class="tagline">Interactive Rhythm Music Video</p>
         <button id="start-btn" class="start-button">
           <span class="btn-icon">▶</span>
-          <span class="btn-text">WAKE UP 524</span>
+          <span class="btn-text">START SESSION</span>
         </button>
-        <p class="hint">さわって、はずんで、音になる</p>
+        <p class="hint">524と一緒にリズムに乗ろう！</p>
       </div>
     </div>
 
-    <!-- ミニマルヘッダー -->
-    <header class="hud-top">
+    <!-- Duolingo風: ライブ・ステータスヘッダー -->
+    <header class="duo-header">
       <div class="brand-pill">
         <span class="brand-dot"></span>
-        <span class="brand-title">524 WEB MV</span>
+        <span class="brand-title">524 BEAT</span>
+      </div>
+
+      <!-- グルーヴプログレスバー -->
+      <div class="groove-progress-wrapper" title="グルーヴゲージ (満タンでFEVER!)">
+        <div id="groove-bar" class="groove-progress-bar" style="width: 20%;"></div>
+      </div>
+
+      <!-- Duolingo風ステータス (Hearts / Combo / Score) -->
+      <div class="status-stats">
+        <div class="stat-badge hearts" title="ライフ">
+          <span class="stat-icon">❤️</span>
+          <span id="hearts-count" class="stat-val">5</span>
+        </div>
+        <div class="stat-badge streak" title="コンボストリーク">
+          <span class="stat-icon">🔥</span>
+          <span id="combo-count" class="stat-val">0</span>
+        </div>
+        <div class="stat-badge score" title="スコア">
+          <span class="stat-icon">💎</span>
+          <span id="score-val" class="stat-val">0</span>
+        </div>
       </div>
 
       <div class="top-actions">
@@ -44,10 +65,19 @@
       </div>
     </header>
 
-    <!-- Mobbin参考: 統合フローティング・アイランド（Pill Dock） -->
+    <!-- 音ゲー・リズム操作エリア ＆ Mobbin参考ピルドック -->
     <main class="hud-dock-wrapper">
+      <!-- 5レーン・タップパッド（1〜5キー or タップ） -->
+      <div class="rhythm-pad-bar">
+        <button class="rhythm-pad" data-lane="0"><span class="pad-num">1</span></button>
+        <button class="rhythm-pad" data-lane="1"><span class="pad-num">2</span></button>
+        <button class="rhythm-pad" data-lane="2"><span class="pad-num">3</span></button>
+        <button class="rhythm-pad" data-lane="3"><span class="pad-num">4</span></button>
+        <button class="rhythm-pad" data-lane="4"><span class="pad-num">5</span></button>
+      </div>
+
+      <!-- 統合フローティング・ピルドック -->
       <div class="pill-dock">
-        <!-- 再生/一時停止 ボタン（ぷるぷるイエローボタン） -->
         <button id="play-pause-btn" class="dock-play-btn" aria-label="再生・一時停止" title="Space">
           <span id="play-icon">⏸</span>
         </button>
@@ -74,11 +104,10 @@
         </div>
       </div>
 
-      <!-- 操作ヒントチップス（さりげなく提示） -->
+      <!-- 操作ヒントチップス -->
       <div class="hint-chips">
-        <span class="chip"><kbd>Drag</kbd> 引っ張ってびよ〜ん♪</span>
-        <span class="chip"><kbd>Click</kbd> しずくポチャン</span>
-        <span class="chip"><kbd>1-5</kbd> メロディ演奏</span>
+        <span class="chip"><kbd>1-5</kbd> ノーツ叩き</span>
+        <span class="chip"><kbd>Drag / Space</kbd> POYON引っ張り</span>
         <span class="chip"><kbd>Mouse</kbd> 音響フィルター</span>
       </div>
     </main>
