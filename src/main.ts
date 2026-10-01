@@ -2,7 +2,7 @@ import { AudioEngine } from './audio/AudioEngine';
 import { MusicSequencer, PlayMode, BeatEvent } from './audio/MusicSequencer';
 import { Character524 } from './character/Character524';
 import { VisualScene } from './visuals/VisualScene';
-import { RhythmGame, GameResult } from './game/RhythmGame';
+import { RhythmGame, GameResult, Difficulty } from './game/RhythmGame';
 
 class App {
   private canvas: HTMLCanvasElement;
@@ -22,6 +22,7 @@ class App {
   // UI要素
   private startOverlay = document.getElementById('start-overlay') as HTMLElement;
   private startBtn = document.getElementById('start-btn') as HTMLButtonElement;
+  private diffButtons = document.querySelectorAll<HTMLButtonElement>('.diff-btn');
   private playPauseBtn = document.getElementById('play-pause-btn') as HTMLButtonElement;
   private playIcon = document.getElementById('play-icon') as HTMLElement;
   private muteBtn = document.getElementById('mute-btn') as HTMLButtonElement;
@@ -43,6 +44,7 @@ class App {
   // リザルト画面UI要素
   private resultOverlay = document.getElementById('result-overlay') as HTMLElement | null;
   private resultBadge = document.getElementById('result-badge') as HTMLElement | null;
+  private resultDiffBadge = document.getElementById('result-diff-badge') as HTMLElement | null;
   private resultRank = document.getElementById('result-rank') as HTMLElement | null;
   private resultScoreNumber = document.getElementById('result-score-number') as HTMLElement | null;
   private resultBestBadge = document.getElementById('result-best-badge') as HTMLElement | null;
@@ -103,6 +105,17 @@ class App {
       this.playIcon.textContent = '⏸';
       this.character.triggerBounce(1.2);
       this.scene.spawnLyric('524 AWAKE !', this.sequencer.getMode());
+    });
+
+    // 1.5 難易度セレクター（EASY / NORMAL / HARD）
+    this.diffButtons.forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const diff = (btn.dataset.diff || 'normal') as Difficulty;
+        this.rhythmGame.setDifficulty(diff);
+        this.diffButtons.forEach((b) => b.classList.toggle('active', b.dataset.diff === diff));
+        this.audioEngine.triggerScaleNote(2);
+      });
     });
 
     // 2. 再生/一時停止
@@ -373,6 +386,12 @@ class App {
       }
     }
 
+    if (this.resultDiffBadge) {
+      const diffUpper = result.difficulty.toUpperCase();
+      this.resultDiffBadge.textContent = diffUpper;
+      this.resultDiffBadge.className = `result-diff-pill ${result.difficulty}`;
+    }
+
     if (this.resultRank) {
       this.resultRank.textContent = result.rank;
       this.resultRank.className = `rank-circle rank-${result.rank.toLowerCase()}`;
@@ -417,9 +436,10 @@ class App {
    */
   private shareToX(): void {
     const res = this.latestResult;
-    let badgeText = res?.isClear ? '🎉 STAGE CLEAR !!' : '🏁 524 Web MV RESULT';
-    if (res?.isAllPerfect) badgeText = '🌈 ALL PERFECT CLEAR !!';
-    else if (res?.isFullCombo) badgeText = '🌟 FULL COMBO CLEAR !!';
+    const diffUpper = (res?.difficulty || 'normal').toUpperCase();
+    let badgeText = res?.isClear ? `🎉 STAGE CLEAR !! [${diffUpper}]` : `🏁 524 Web MV RESULT [${diffUpper}]`;
+    if (res?.isAllPerfect) badgeText = `🌈 ALL PERFECT CLEAR !! [${diffUpper}]`;
+    else if (res?.isFullCombo) badgeText = `🌟 FULL COMBO CLEAR !! [${diffUpper}]`;
 
     const rank = res?.rank || 'C';
     const score = (res?.score || 0).toLocaleString();
@@ -428,6 +448,7 @@ class App {
     const newBestTag = res?.isNewBest ? '\n👑 【自己ベスト新記録を更新！！】' : '';
 
     const text = `${badgeText}${newBestTag}
+難易度: ${diffUpper}
 ランク: [ ${rank} ]
 スコア: ${score} pts (最大コンボ: ${maxCombo} 🔥 / PERFECT: ${perfects})
 524と一緒にチル＆グルーヴ音ゲーを遊んだよ！みんなも自己ベストを目指して挑戦してみてね！✨`;
@@ -443,9 +464,10 @@ class App {
    */
   private async copyResultText(): Promise<void> {
     const res = this.latestResult;
-    let badgeText = res?.isClear ? '🎉 STAGE CLEAR !!' : '🏁 524 Web MV RESULT';
-    if (res?.isAllPerfect) badgeText = '🌈 ALL PERFECT !!';
-    else if (res?.isFullCombo) badgeText = '🌟 FULL COMBO !!';
+    const diffUpper = (res?.difficulty || 'normal').toUpperCase();
+    let badgeText = res?.isClear ? `🎉 STAGE CLEAR !! [${diffUpper}]` : `🏁 524 Web MV RESULT [${diffUpper}]`;
+    if (res?.isAllPerfect) badgeText = `🌈 ALL PERFECT !! [${diffUpper}]`;
+    else if (res?.isFullCombo) badgeText = `🌟 FULL COMBO !! [${diffUpper}]`;
 
     const rank = res?.rank || 'C';
     const score = (res?.score || 0).toLocaleString();
@@ -453,7 +475,7 @@ class App {
     const newBestTag = res?.isNewBest ? ' 👑NEW BEST!' : '';
 
     const text = `${badgeText}${newBestTag}
-ランク: [ ${rank} ] / スコア: ${score} pts (最大コンボ: ${maxCombo} 🔥)
+難易度: ${diffUpper} / ランク: [ ${rank} ] / スコア: ${score} pts (最大コンボ: ${maxCombo} 🔥)
 https://mae616.github.io/524-web-mv/
 #524Beat #524_MV`;
 

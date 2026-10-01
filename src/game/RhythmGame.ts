@@ -5,6 +5,8 @@ import { VisualScene } from '../visuals/VisualScene';
 
 export type NoteType = 'tap' | 'poyon' | 'bion'; // tap: 1〜5, poyon: ちょい引き(Space/短引), bion: 大引き(長引/大引)
 
+export type Difficulty = 'easy' | 'normal' | 'hard';
+
 export interface Note {
   id: number;
   type: NoteType;
@@ -19,6 +21,7 @@ export type Judgment = 'PERFECT' | 'GREAT' | 'GOOD' | 'MISS';
 
 export interface GameResult {
   isClear: boolean;
+  difficulty: Difficulty;
   score: number;
   highScore: number;
   isNewBest: boolean;
@@ -67,7 +70,8 @@ export class RhythmGame {
   public missCount: number = 0;
 
   // ステージ進行
-  public targetBars: number = 16; // 1ステージ16小節（約45秒）
+  public difficulty: Difficulty = 'normal';
+  public targetBars: number = 16; // 1ステージ小節数（EASY: 12, NORMAL: 16, HARD: 20）
   public currentBar: number = 0;
   public isCompleted: boolean = false;
 
@@ -96,6 +100,38 @@ export class RhythmGame {
     this.bindSequencerEvents();
   }
 
+  /**
+   * 難易度設定（EASY / NORMAL / HARD）
+   */
+  public setDifficulty(diff: Difficulty): void {
+    this.difficulty = diff;
+    if (diff === 'easy') {
+      this.noteSpeed = 1.65;
+      this.targetBars = 12;
+    } else if (diff === 'normal') {
+      this.noteSpeed = 1.35;
+      this.targetBars = 16;
+    } else if (diff === 'hard') {
+      this.noteSpeed = 1.05;
+      this.targetBars = 20;
+    }
+  }
+
+  /**
+   * 触覚（バイブレーション）フィードバック（スマホプレイ用）
+   */
+  public triggerHaptic(type: 'tap' | 'poyon' | 'bion' | 'miss' | 'clear'): void {
+    if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
+      try {
+        if (type === 'tap') navigator.vibrate(12);
+        else if (type === 'poyon') navigator.vibrate([10, 25, 15]);
+        else if (type === 'bion') navigator.vibrate([20, 20, 40]);
+        else if (type === 'miss') navigator.vibrate(50);
+        else if (type === 'clear') navigator.vibrate([30, 40, 30, 40, 60]);
+      } catch (_) {}
+    }
+  }
+
   private bindSequencerEvents(): void {
     // 音楽シーケンサーのビートに合わせてノーツを自動生成（譜面自動生成）
     this.sequencer.onStepCallbacks.push((ev: BeatEvent) => {
@@ -104,10 +140,10 @@ export class RhythmGame {
 
       this.currentBar = ev.bar;
 
-      // 楽曲のドラマチック展開（16小節のステージ構成）
-      // 0〜3小節 (Bar 1〜4): CHILL INTRO
-      // 4〜11小節 (Bar 5〜12): MAIN GROOVE
-      // 12〜15小節 (Bar 13〜16): CLIMAX FEVER
+      // 楽曲のドラマチック展開（ステージ構成）
+      // 0〜3小節: CHILL INTRO
+      // 4〜11小節: MAIN GROOVE
+      // 12小節目以降: CLIMAX FEVER
       if (ev.step === 0) {
         if (ev.bar === 0 && this.sequencer.getMode() !== 'chill') {
           this.sequencer.setMode('chill');
@@ -116,7 +152,7 @@ export class RhythmGame {
           this.sequencer.setMode('groove');
           this.scene.spawnLyric('PHASE 2: GROOVE TIME !', 'groove');
           this.character.triggerBounce(1.5);
-        } else if (ev.bar === 12 && this.sequencer.getMode() !== 'fever') {
+        } else if (ev.bar === (this.difficulty === 'easy' ? 8 : 12) && this.sequencer.getMode() !== 'fever') {
           this.triggerFeverUpgrade();
           this.scene.spawnLyric('FINAL: FEVER CLIMAX !!', 'fever');
         }
@@ -128,18 +164,35 @@ export class RhythmGame {
       const mode = this.sequencer.getMode();
       const targetTime = ctx.currentTime + this.noteSpeed;
 
-      // 2小節に1回、またはFEVERの小節頭に「大きく引っ張る BION ノーツ」
-      if (ev.step === 0 && ev.bar % 2 === 0 && (mode === 'groove' || mode === 'fever')) {
-        this.spawnNote('bion', -1, targetTime);
-      }
-      // 4拍に一度、または小節の折り返しに「ちょい引き POYON ノーツ」
-      else if (ev.step === 8 && (mode === 'groove' || mode === 'fever')) {
-        this.spawnNote('poyon', -1, targetTime);
-      }
-      // 通常のTapノーツ（1〜5）
-      else if (ev.step % 4 === 0 || (mode === 'fever' && ev.step % 2 === 0)) {
-        const lane = (ev.beat + ev.bar) % 5;
-        this.spawnNote('tap', lane, targetTime);
+      // 難易度に応じたノーツ生成パターン
+      if (this.difficulty === 'easy') {
+        // EASY: ゆったり4拍に1ノーツ、たまにPOYON
+        if (ev.step === 0 && ev.bar % 3 === 0 && (mode === 'groove' || mode === 'fever')) {
+          this.spawnNote('poyon', -1, targetTime);
+        } else if (ev.step % 4 === 0) {
+          const lane = (ev.beat + ev.bar) % 5;
+          this.spawnNote('tap', lane, targetTime);
+        }
+      } else if (this.difficulty === 'hard') {
+        // HARD: 8分裏拍、BION・POYON高頻度出現
+        if (ev.step === 0 && (mode === 'groove' || mode === 'fever')) {
+          this.spawnNote('bion', -1, targetTime);
+        } else if (ev.step === 8 && (mode === 'groove' || mode === 'fever')) {
+          this.spawnNote('poyon', -1, targetTime);
+        } else if (ev.step % 2 === 0) {
+          const lane = (ev.step / 2 + ev.bar) % 5;
+          this.spawnNote('tap', lane, targetTime);
+        }
+      } else {
+        // NORMAL (標準)
+        if (ev.step === 0 && ev.bar % 2 === 0 && (mode === 'groove' || mode === 'fever')) {
+          this.spawnNote('bion', -1, targetTime);
+        } else if (ev.step === 8 && (mode === 'groove' || mode === 'fever')) {
+          this.spawnNote('poyon', -1, targetTime);
+        } else if (ev.step % 4 === 0 || (mode === 'fever' && ev.step % 2 === 0)) {
+          const lane = (ev.beat + ev.bar) % 5;
+          this.spawnNote('tap', lane, targetTime);
+        }
       }
     });
   }
@@ -270,19 +323,22 @@ export class RhythmGame {
         this.character.triggerBounce(0.8);
       }
 
-      // サウンドトリガー＆専用リリック
+      // サウンドトリガー＆専用リリック＆ハプティクス
       if (note.type === 'bion') {
         this.audioEngine.triggerBion(tension);
+        this.triggerHaptic('bion');
         this.scene.spawnLyric('BION !!', this.sequencer.getMode(), undefined, undefined, true);
         this.scene.cameraShake = 8;
         this.character.triggerBounce(1.8);
       } else if (note.type === 'poyon') {
         this.audioEngine.triggerPoyon(tension);
+        this.triggerHaptic('poyon');
         this.scene.spawnLyric('POYON !', this.sequencer.getMode(), undefined, undefined, true);
         this.scene.cameraShake = 4;
         this.character.triggerBounce(1.2);
       } else {
         this.audioEngine.triggerScaleNote(lane >= 0 ? lane : 2);
+        this.triggerHaptic('tap');
         if (judgment === 'PERFECT') {
           this.scene.spawnLyric('PERFECT !', this.sequencer.getMode(), undefined, undefined, true);
           this.scene.cameraShake = 5;
@@ -302,6 +358,7 @@ export class RhythmGame {
         this.triggerFeverUpgrade();
       }
     } else {
+      this.triggerHaptic('miss');
       this.handleMiss();
     }
 
@@ -343,11 +400,12 @@ export class RhythmGame {
       rank = 'B';
     }
 
-    // ハイスコア判定（LocalStorage）
+    // 難易度別ハイスコア判定（LocalStorage）
+    const storageKey = `524_high_score_${this.difficulty}`;
     let currentHigh = 0;
     try {
       if (typeof window !== 'undefined' && window.localStorage) {
-        const stored = window.localStorage.getItem('524_high_score');
+        const stored = window.localStorage.getItem(storageKey);
         currentHigh = stored ? parseInt(stored, 10) : 0;
       }
     } catch (_) {}
@@ -358,7 +416,7 @@ export class RhythmGame {
     if (isNewBest) {
       try {
         if (typeof window !== 'undefined' && window.localStorage) {
-          window.localStorage.setItem('524_high_score', String(this.score));
+          window.localStorage.setItem(storageKey, String(this.score));
         }
       } catch (_) {}
     }
@@ -369,6 +427,7 @@ export class RhythmGame {
 
     return {
       isClear,
+      difficulty: this.difficulty,
       score: this.score,
       highScore: finalHigh,
       isNewBest,
@@ -401,6 +460,7 @@ export class RhythmGame {
   private triggerGameClear(): void {
     this.isCompleted = true;
     this.sequencer.stop();
+    this.triggerHaptic('clear');
     const result = this.calculateResult(true);
     this.audioEngine.triggerClearVoiceAndFanfare();
     this.character.triggerDance(3.0);

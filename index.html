@@ -3,7 +3,13 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="./assets/524_character.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#1f6475" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="524 Beat" />
+    <link rel="manifest" href="./manifest.json" />
+    <link rel="apple-touch-icon" href="./assets/524_character.png" />
     <title>524 - Rhythm Web MV</title>
     <link rel="stylesheet" href="./src/style.css" />
   </head>
@@ -19,6 +25,14 @@
         </div>
         <h1 class="title">524</h1>
         <p class="tagline">Interactive Rhythm Music Video</p>
+
+        <!-- 難易度セレクター（EASY / NORMAL / HARD） -->
+        <div class="diff-selector" role="group" aria-label="難易度選択">
+          <button class="diff-btn" data-diff="easy">EASY</button>
+          <button class="diff-btn active" data-diff="normal">NORMAL</button>
+          <button class="diff-btn" data-diff="hard">HARD</button>
+        </div>
+
         <button id="start-btn" class="start-button">
           <span class="btn-icon">▶</span>
           <span class="btn-text">START SESSION</span>
@@ -71,7 +85,10 @@
     <!-- リザルト画面（クリア時 ＆ 途中リタイア時） -->
     <div id="result-overlay" class="overlay">
       <div class="result-card">
-        <div id="result-badge" class="result-title-badge clear">STAGE CLEAR !!</div>
+        <div class="result-badge-wrap">
+          <div id="result-badge" class="result-title-badge clear">STAGE CLEAR !!</div>
+          <div id="result-diff-badge" class="result-diff-pill">NORMAL</div>
+        </div>
 
         <div class="result-char-preview">
           <img src="./assets/524_character.png" alt="524 Character" class="result-avatar" />

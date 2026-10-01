@@ -1,0 +1,17 @@
+{
+  "name": "524 Beat - Rhythm Web MV",
+  "short_name": "524 Beat",
+  "description": "Interactive Rhythm Music Video featuring 524 character",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#38b6d8",
+  "theme_color": "#1f6475",
+  "icons": [
+    {
+      "src": "./assets/524_character.png",
+      "sizes": "192x192 512x512",
+      "type": "image/png"
+    }
+  ]
+}
