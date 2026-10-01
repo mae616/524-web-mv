@@ -114,62 +114,78 @@ export class Synth {
   }
 
   /**
-   * 温かみのあるグルーヴ・シンセベース
+   * 温かみのあるグルーヴ・シンセベース（サブベースレイヤー追加で厚み向上）
    */
   public playBass(freq: number, time: number = this.ctx.currentTime, duration: number = 0.25): void {
-    const osc = this.ctx.createOscillator();
+    const oscMain = this.ctx.createOscillator();
+    const oscSub = this.ctx.createOscillator();
     const filter = this.ctx.createBiquadFilter();
     const gain = this.ctx.createGain();
 
-    osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(freq, time);
+    // メインベース（のこぎり波 + フィルター）
+    oscMain.type = 'sawtooth';
+    oscMain.frequency.setValueAtTime(freq, time);
+
+    // サブベース（1オクターブ下の純粋なサイン波で豊かな低音感）
+    oscSub.type = 'sine';
+    oscSub.frequency.setValueAtTime(freq * 0.5, time);
 
     filter.type = 'lowpass';
-    filter.frequency.setValueAtTime(freq * 3, time);
+    filter.frequency.setValueAtTime(freq * 3.5, time);
     filter.frequency.exponentialRampToValueAtTime(freq * 1.2, time + duration);
 
-    gain.gain.setValueAtTime(0.55, time);
+    gain.gain.setValueAtTime(0.5, time);
     gain.gain.exponentialRampToValueAtTime(0.001, time + duration);
 
-    osc.connect(filter);
+    oscMain.connect(filter);
+    oscSub.connect(filter);
     filter.connect(gain);
     gain.connect(this.masterNode);
 
-    osc.start(time);
-    osc.stop(time + duration);
+    oscMain.start(time);
+    oscSub.start(time);
+    oscMain.stop(time + duration);
+    oscSub.stop(time + duration);
   }
 
   /**
-   * ドリーミーなコード・シンセパッド
+   * ドリーミーなコード・シンセパッド（ツインオシレーター＋コーラスデチューンで厚み向上）
    */
   public playChordNote(freq: number, time: number = this.ctx.currentTime, duration: number = 1.0, gainVal: number = 0.15): void {
     const osc1 = this.ctx.createOscillator();
     const osc2 = this.ctx.createOscillator();
+    const osc3 = this.ctx.createOscillator();
     const filter = this.ctx.createBiquadFilter();
     const gain = this.ctx.createGain();
 
     osc1.type = 'triangle';
     osc2.type = 'sine';
+    osc3.type = 'triangle';
 
     osc1.frequency.setValueAtTime(freq, time);
-    osc2.frequency.setValueAtTime(freq * 1.003, time); // わずかなデチューンで広がり
+    osc2.frequency.setValueAtTime(freq * 1.004, time); // +4セントのコーラス感
+    osc3.frequency.setValueAtTime(freq * 0.996, time); // -4セントのコーラス感
 
     filter.type = 'lowpass';
-    filter.frequency.setValueAtTime(1400, time);
+    filter.frequency.setValueAtTime(1600, time);
+    filter.frequency.linearRampToValueAtTime(900, time + duration);
 
     gain.gain.setValueAtTime(0.001, time);
-    gain.gain.linearRampToValueAtTime(gainVal, time + 0.1);
+    gain.gain.linearRampToValueAtTime(gainVal * 0.85, time + 0.08);
     gain.gain.exponentialRampToValueAtTime(0.001, time + duration);
 
     osc1.connect(filter);
     osc2.connect(filter);
+    osc3.connect(filter);
     filter.connect(gain);
     gain.connect(this.masterNode);
 
     osc1.start(time);
     osc2.start(time);
+    osc3.start(time);
     osc1.stop(time + duration);
     osc2.stop(time + duration);
+    osc3.stop(time + duration);
   }
 
   /**

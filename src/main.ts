@@ -24,6 +24,7 @@ class App {
   private startBtn = document.getElementById('start-btn') as HTMLButtonElement;
   private diffButtons = document.querySelectorAll<HTMLButtonElement>('.diff-btn');
   private skinButtons = document.querySelectorAll<HTMLButtonElement>('.skin-btn');
+  private skinNameBadge = document.getElementById('skin-name-badge') as HTMLElement | null;
   private previewImg = document.querySelector<HTMLImageElement>('.preview-img');
   private resultAvatar = document.querySelector<HTMLImageElement>('.result-avatar');
   private playPauseBtn = document.getElementById('play-pause-btn') as HTMLButtonElement;
@@ -410,16 +411,38 @@ class App {
     if (this.resultRank) {
       this.resultRank.textContent = result.rank;
       this.resultRank.className = `rank-circle rank-${result.rank.toLowerCase()}`;
+      if (result.rank === 'S') {
+        this.character.triggerHappy(3.5);
+        this.character.triggerDance(3.0);
+      }
     }
 
+    // スコアのドラマチックなロールアップ（カウントアップ）演出
     if (this.resultScoreNumber) {
-      this.resultScoreNumber.textContent = result.score.toLocaleString();
+      const targetScore = result.score;
+      const duration = 1200; // 1.2秒
+      const startTime = performance.now();
+      const el = this.resultScoreNumber;
+
+      const animateRollup = (now: number) => {
+        const elapsed = now - startTime;
+        const progress = Math.min(1, elapsed / duration);
+        const eased = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
+        const currentVal = Math.round(targetScore * eased);
+        el.textContent = currentVal.toLocaleString();
+        if (progress < 1) {
+          requestAnimationFrame(animateRollup);
+        } else {
+          el.textContent = targetScore.toLocaleString();
+        }
+      };
+      requestAnimationFrame(animateRollup);
     }
 
     if (this.resultBestBadge) {
       this.resultBestBadge.style.display = result.isNewBest ? 'inline-block' : 'none';
       if (result.isNewBest) {
-        this.character.triggerDance(2.5);
+        this.character.triggerDance(3.0);
       }
     }
 
@@ -579,6 +602,17 @@ https://mae616.github.io/524-web-mv/
     }
     if (this.resultAvatar) {
       this.resultAvatar.style.filter = cssFilter;
+    }
+
+    const skinNames: Record<CharacterSkin, string> = {
+      yellow: 'CLASSIC',
+      pink: 'SAKURA',
+      mint: 'MINT',
+      blue: 'SODA',
+      purple: 'LAVENDER',
+    };
+    if (this.skinNameBadge) {
+      this.skinNameBadge.textContent = skinNames[skin] || 'CLASSIC';
     }
 
     try {

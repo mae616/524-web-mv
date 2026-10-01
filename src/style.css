@@ -230,6 +230,20 @@ html, body {
   box-shadow: 0 0 10px var(--skin-c), 0 2px 8px rgba(0, 0, 0, 0.35);
 }
 
+.skin-name-badge {
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.8px;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.16);
+  padding: 3px 8px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  min-width: 60px;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
 .start-button {
   display: inline-flex;
   align-items: center;
