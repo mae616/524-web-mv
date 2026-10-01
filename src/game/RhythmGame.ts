@@ -104,6 +104,7 @@ export class RhythmGame {
    * 難易度設定（EASY / NORMAL / HARD）
    */
   public setDifficulty(diff: Difficulty): void {
+    const isChanged = this.difficulty !== diff;
     this.difficulty = diff;
     this.sequencer.setDifficulty(diff);
     if (diff === 'easy') {
@@ -115,6 +116,12 @@ export class RhythmGame {
     } else if (diff === 'hard') {
       this.noteSpeed = 1.05;
       this.targetBars = 20;
+    }
+
+    if (isChanged) {
+      // 進行小節数が新難易度の目標小節数を超えて即時クリア誤爆するのを完全に防止
+      this.reset();
+      this.sequencer.reset();
     }
   }
 
@@ -566,8 +573,9 @@ export class RhythmGame {
       }
     }
 
-    // ステージ完走判定（規定小節に達し、全ノーツ通過完了でクリア！）
-    if (!this.isCompleted && this.currentBar >= this.targetBars && this.notes.length === 0 && this.sequencer.getIsPlaying()) {
+    // ステージ完走判定（規定小節に達し、全ノーツ通過完了でクリア！※初期状態での誤爆防止ガード）
+    const totalProcessed = this.perfectCount + this.greatCount + this.goodCount + this.missCount;
+    if (!this.isCompleted && this.currentBar >= this.targetBars && this.notes.length === 0 && this.sequencer.getIsPlaying() && totalProcessed > 0) {
       this.triggerGameClear();
     }
 

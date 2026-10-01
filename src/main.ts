@@ -160,6 +160,10 @@ class App {
         const diff = (btn.dataset.diff || 'normal') as Difficulty;
         this.rhythmGame.setDifficulty(diff);
         this.diffButtons.forEach((b) => b.classList.toggle('active', b.dataset.diff === diff));
+        this.syncGameStateToHUD();
+        const btnText = this.startBtn.querySelector('.btn-text');
+        if (btnText) btnText.textContent = 'START SESSION';
+        if (this.startCloseBtn) this.startCloseBtn.style.display = 'none';
         this.audioEngine.triggerScaleNote(2);
       });
     });
