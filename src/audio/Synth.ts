@@ -199,30 +199,75 @@ export class Synth {
   }
 
   /**
-   * シグネチャ表現: 524引っ張りバウンス（ビヨ〜ン♪音）
-   * @param tension 0.0〜1.0（引っ張り度合い）
+   * シグネチャ表現: 524ちょっと引っ張り「ポヨンッ♪」音
+   * @param tension 0.0〜0.45（軽やかな引っ張り）
    */
-  public playBoing(tension: number, time: number = this.ctx.currentTime): void {
+  public playPoyon(tension: number = 0.3, time: number = this.ctx.currentTime): void {
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
 
     osc.type = 'sine';
-    const startFreq = 220 + tension * 400;
-    const targetFreq = 160 + tension * 80;
+    const startFreq = 420 + tension * 280;
+    const targetFreq = startFreq * 1.35;
 
-    // ビヨ〜ンとポルタメント＆ウォブル
+    // キュートなスプリング音（上昇してからピョンと跳ねる）
     osc.frequency.setValueAtTime(startFreq, time);
-    osc.frequency.exponentialRampToValueAtTime(targetFreq, time + 0.25);
-    osc.frequency.linearRampToValueAtTime(startFreq * 0.9, time + 0.4);
+    osc.frequency.exponentialRampToValueAtTime(targetFreq, time + 0.09);
+    osc.frequency.exponentialRampToValueAtTime(startFreq * 0.95, time + 0.22);
 
-    gain.gain.setValueAtTime(0.4, time);
-    gain.gain.exponentialRampToValueAtTime(0.001, time + 0.55);
+    gain.gain.setValueAtTime(0.35, time);
+    gain.gain.exponentialRampToValueAtTime(0.001, time + 0.25);
 
     osc.connect(gain);
     gain.connect(this.masterNode);
 
     osc.start(time);
-    osc.stop(time + 0.55);
+    osc.stop(time + 0.25);
+  }
+
+  /**
+   * シグネチャ表現: 524大きく引っ張り「ビヨ〜〜ン♪」音
+   * @param tension 0.45〜1.0（ダイナミックな大引っ張り）
+   */
+  public playBion(tension: number = 0.8, time: number = this.ctx.currentTime): void {
+    const osc = this.ctx.createOscillator();
+    const filter = this.ctx.createBiquadFilter();
+    const gain = this.ctx.createGain();
+
+    osc.type = 'triangle';
+    const startFreq = 260 + tension * 240;
+    const dropFreq = 110 + tension * 40;
+
+    // リッチな周波数ベンド＆ウォブル
+    osc.frequency.setValueAtTime(startFreq, time);
+    osc.frequency.exponentialRampToValueAtTime(dropFreq, time + 0.28);
+    osc.frequency.linearRampToValueAtTime(dropFreq * 1.5, time + 0.42);
+    osc.frequency.exponentialRampToValueAtTime(dropFreq * 0.9, time + 0.65);
+
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(1600, time);
+    filter.frequency.exponentialRampToValueAtTime(600, time + 0.65);
+
+    gain.gain.setValueAtTime(0.5, time);
+    gain.gain.exponentialRampToValueAtTime(0.001, time + 0.7);
+
+    osc.connect(filter);
+    filter.connect(gain);
+    gain.connect(this.masterNode);
+
+    osc.start(time);
+    osc.stop(time + 0.7);
+  }
+
+  /**
+   * 汎用バウンス音（互換性維持用）
+   */
+  public playBoing(tension: number, time: number = this.ctx.currentTime): void {
+    if (tension < 0.45) {
+      this.playPoyon(tension, time);
+    } else {
+      this.playBion(tension, time);
+    }
   }
 
   /**

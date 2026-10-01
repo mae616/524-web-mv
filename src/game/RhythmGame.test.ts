@@ -7,6 +7,8 @@ function createMockGame() {
     getContext: vi.fn(() => ({ currentTime: 10.0 })),
     triggerScaleNote: vi.fn(),
     triggerBoing: vi.fn(),
+    triggerPoyon: vi.fn(),
+    triggerBion: vi.fn(),
   } as any;
 
   let currentMode = 'groove';
@@ -135,5 +137,41 @@ describe('RhythmGame Core Logic', () => {
     expect(game.grooveGauge).toBe(100);
     expect(mockSequencer.setMode).toHaveBeenCalledWith('fever');
     expect(mockCharacter.isFeverAura).toBe(true);
+  });
+
+  it('小引っ張り（tension 0.3）で POYON ノーツが PERFECT 判定されること', () => {
+    const { game, mockAudioEngine, mockCharacter } = context;
+    (game as any).notes.push({
+      id: 2,
+      type: 'poyon',
+      lane: -1,
+      targetTime: 10.03,
+      hit: false,
+      missed: false,
+      yProgress: 0.98,
+    });
+
+    const res = game.handleDragReleaseInput(0.3);
+    expect(res).toBe('PERFECT');
+    expect(mockAudioEngine.triggerPoyon || mockAudioEngine.triggerBoing).toBeDefined();
+    expect(mockCharacter.triggerHappy).toHaveBeenCalled();
+  });
+
+  it('大引っ張り（tension 0.8）で BION ノーツが PERFECT 判定され、500点ボーナスが入ること', () => {
+    const { game, mockCharacter } = context;
+    (game as any).notes.push({
+      id: 3,
+      type: 'bion',
+      lane: -1,
+      targetTime: 10.04,
+      hit: false,
+      missed: false,
+      yProgress: 0.98,
+    });
+
+    const res = game.handleDragReleaseInput(0.8);
+    expect(res).toBe('PERFECT');
+    expect(game.score).toBe(500);
+    expect(mockCharacter.triggerHappy).toHaveBeenCalled();
   });
 });

@@ -67,13 +67,22 @@
 
     <!-- 音ゲー・リズム操作エリア ＆ Mobbin参考ピルドック -->
     <main class="hud-dock-wrapper">
-      <!-- 5レーン・タップパッド（1〜5キー or タップ） -->
+      <!-- 5レーン・タップパッド（1〜5キー or タップ）＆ 引っ張りスリング（POYON / BION） -->
       <div class="rhythm-pad-bar">
         <button class="rhythm-pad" data-lane="0"><span class="pad-num">1</span></button>
         <button class="rhythm-pad" data-lane="1"><span class="pad-num">2</span></button>
         <button class="rhythm-pad" data-lane="2"><span class="pad-num">3</span></button>
         <button class="rhythm-pad" data-lane="3"><span class="pad-num">4</span></button>
         <button class="rhythm-pad" data-lane="4"><span class="pad-num">5</span></button>
+        <div class="pad-divider"></div>
+        <button class="rhythm-sling-btn poyon" id="sling-poyon-btn" title="ちょい引き (Space / 引っ張り小)">
+          <span class="sling-icon">🤏</span>
+          <span class="sling-text">POYON</span>
+        </button>
+        <button class="rhythm-sling-btn bion" id="sling-bion-btn" title="大引き (Shift+Space / Enter / 引っ張り大)">
+          <span class="sling-icon">🚀</span>
+          <span class="sling-text">BION</span>
+        </button>
       </div>
 
       <!-- 統合フローティング・ピルドック -->

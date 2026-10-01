@@ -36,6 +36,8 @@ class App {
   private scoreVal = document.getElementById('score-val') as HTMLElement;
   private grooveBar = document.getElementById('groove-bar') as HTMLElement;
   private rhythmPads = document.querySelectorAll<HTMLButtonElement>('.rhythm-pad');
+  private slingPoyonBtn = document.getElementById('sling-poyon-btn') as HTMLButtonElement | null;
+  private slingBionBtn = document.getElementById('sling-bion-btn') as HTMLButtonElement | null;
 
   constructor() {
     this.canvas = document.getElementById('mv-canvas') as HTMLCanvasElement;
@@ -185,10 +187,12 @@ class App {
       if (this.character.isDragging) {
         const result = this.character.endDrag();
         if (result && result.tension > 0.08) {
-          // 引っ張りピョン（POYON）判定トリガー
-          this.rhythmGame.handlePoyonInput();
-          this.scene.spawnLyric('POYON !', this.sequencer.getMode(), this.character.x, this.character.y - 80);
-          this.scene.cameraShake = 6 * result.tension;
+          // 引っ張りの強さに応じて POYON (小) または BION (大) を判定！
+          this.rhythmGame.handleDragReleaseInput(result.tension);
+
+          const targetBtn = result.tension < 0.45 ? this.slingPoyonBtn : this.slingBionBtn;
+          targetBtn?.classList.add('active');
+          setTimeout(() => targetBtn?.classList.remove('active'), 120);
         }
       }
     });
@@ -205,13 +209,41 @@ class App {
       pad.addEventListener('pointerdown', trigger);
     });
 
-    // 9. キーボードショートカット（1〜5, Space, F, M）
+    // 9. 引っ張りスリングボタン（POYON / BION）の操作
+    this.slingPoyonBtn?.addEventListener('pointerdown', (e) => {
+      e.stopPropagation();
+      this.rhythmGame.handlePoyonInput();
+      this.slingPoyonBtn?.classList.add('active');
+      setTimeout(() => this.slingPoyonBtn?.classList.remove('active'), 120);
+    });
+
+    this.slingBionBtn?.addEventListener('pointerdown', (e) => {
+      e.stopPropagation();
+      this.rhythmGame.handleBionInput();
+      this.slingBionBtn?.classList.add('active');
+      setTimeout(() => this.slingBionBtn?.classList.remove('active'), 120);
+    });
+
+    // 10. キーボードショートカット（1〜5, Space: POYON, Shift+Space/Enter: BION, F, M）
     window.addEventListener('keydown', (e) => {
       if (e.repeat) return;
 
       if (e.code === 'Space') {
         e.preventDefault();
-        this.rhythmGame.handlePoyonInput();
+        if (e.shiftKey) {
+          this.rhythmGame.handleBionInput();
+          this.slingBionBtn?.classList.add('active');
+          setTimeout(() => this.slingBionBtn?.classList.remove('active'), 120);
+        } else {
+          this.rhythmGame.handlePoyonInput();
+          this.slingPoyonBtn?.classList.add('active');
+          setTimeout(() => this.slingPoyonBtn?.classList.remove('active'), 120);
+        }
+      } else if (e.code === 'Enter' || e.code === 'ArrowDown') {
+        e.preventDefault();
+        this.rhythmGame.handleBionInput();
+        this.slingBionBtn?.classList.add('active');
+        setTimeout(() => this.slingBionBtn?.classList.remove('active'), 120);
       } else if (e.key >= '1' && e.key <= '5') {
         const idx = parseInt(e.key, 10) - 1;
         this.rhythmGame.handleTapInput(idx);
@@ -229,7 +261,7 @@ class App {
       }
     });
 
-    // 10. 音ゲー状態更新コールバックの購読
+    // 11. 音ゲー状態更新コールバックの購読
     this.rhythmGame.onStateChange = () => {
       this.syncGameStateToHUD();
     };

@@ -127,7 +127,23 @@ export class AudioEngine {
   }
 
   /**
-   * 引っ張りバウンス音（ビヨ〜ン）
+   * ちょっと引っ張り「ポヨン♪」音（軽やかなバウンス）
+   */
+  public triggerPoyon(tension: number = 0.3): void {
+    if (!this.synth || !this.ctx) return;
+    this.synth.playPoyon(tension, this.ctx.currentTime);
+  }
+
+  /**
+   * 大きく引っ張り「ビヨ〜〜ン♪」音（リッチなウォブル）
+   */
+  public triggerBion(tension: number = 0.8): void {
+    if (!this.synth || !this.ctx) return;
+    this.synth.playBion(tension, this.ctx.currentTime);
+  }
+
+  /**
+   * 汎用バウンス音（ビヨ〜ン）
    */
   public triggerBoing(tension: number): void {
     if (!this.synth || !this.ctx) return;

@@ -3,12 +3,12 @@ import { MusicSequencer, BeatEvent } from '../audio/MusicSequencer';
 import { Character524 } from '../character/Character524';
 import { VisualScene } from '../visuals/VisualScene';
 
-export type NoteType = 'tap' | 'poyon'; // tap: 1〜5, poyon: スペース/引っ張り
+export type NoteType = 'tap' | 'poyon' | 'bion'; // tap: 1〜5, poyon: ちょい引き(Space/短引), bion: 大引き(長引/大引)
 
 export interface Note {
   id: number;
   type: NoteType;
-  lane: number;          // 0〜4 (tap), -1 (poyon)
+  lane: number;          // 0〜4 (tap), -1 (poyon/bion)
   targetTime: number;    // ヒットすべきAudioContext時間
   hit: boolean;
   missed: boolean;
@@ -28,7 +28,7 @@ export interface FloatingScore {
 
 /**
  * 音ゲー（リズムゲーム）エンジン
- * 中毒性の高いペンタトニック調和、524引っ張りアクション、Duolingo的ライブヘルスシステムを統括
+ * 中毒性の高いペンタトニック調和、524引っ張りアクション（POYON / BION）、Duolingo的ライブヘルスシステムを統括
  */
 export class RhythmGame {
   private audioEngine: AudioEngine;
@@ -76,11 +76,16 @@ export class RhythmGame {
       const mode = this.sequencer.getMode();
       const targetTime = ctx.currentTime + this.noteSpeed;
 
-      // 4拍に一度、または小節頭に「引っ張りピョン（POYON）ノーツ」
-      if (ev.step === 0 && (mode === 'groove' || mode === 'fever')) {
+      // 2小節に1回、またはFEVERの小節頭に「大きく引っ張る BION ノーツ」
+      if (ev.step === 0 && ev.bar % 2 === 0 && (mode === 'groove' || mode === 'fever')) {
+        this.spawnNote('bion', -1, targetTime);
+      }
+      // 4拍に一度、または小節の折り返しに「ちょい引き POYON ノーツ」
+      else if (ev.step === 8 && (mode === 'groove' || mode === 'fever')) {
         this.spawnNote('poyon', -1, targetTime);
-      } else if (ev.step % 4 === 0 || (mode === 'fever' && ev.step % 2 === 0)) {
-        // 通常のTapノーツ（1〜5）
+      }
+      // 通常のTapノーツ（1〜5）
+      else if (ev.step % 4 === 0 || (mode === 'fever' && ev.step % 2 === 0)) {
         const lane = (ev.beat + ev.bar) % 5;
         this.spawnNote('tap', lane, targetTime);
       }
@@ -120,32 +125,52 @@ export class RhythmGame {
     }
 
     const diff = Math.abs(candidate.targetTime - currentTime);
-    return this.judgeNote(candidate, diff, lane);
+    return this.judgeNote(candidate, diff, lane, 0.5);
   }
 
   /**
-   * 524引っ張りピョン判定（Space または スリングショット）
+   * 524引っ張りリリース判定（小引き tension < 0.45: POYON / 大引き tension >= 0.45: BION）
    */
-  public handlePoyonInput(): Judgment | null {
+  public handleDragReleaseInput(tension: number): Judgment | null {
     const ctx = this.audioEngine.getContext();
     if (!ctx) return null;
 
     const currentTime = ctx.currentTime;
+    const actionType: NoteType = tension < 0.45 ? 'poyon' : 'bion';
+
+    // 最も判定ラインに近い poyon または bion ノーツを探索
     const candidate = this.notes
-      .filter(n => !n.hit && !n.missed && n.type === 'poyon')
+      .filter(n => !n.hit && !n.missed && (n.type === 'poyon' || n.type === 'bion'))
       .sort((a, b) => Math.abs(a.targetTime - currentTime) - Math.abs(b.targetTime - currentTime))[0];
 
     if (!candidate) {
-      this.audioEngine.triggerBoing(0.5);
-      this.character.triggerBounce(1.0);
+      // ノーツがない時でも引っ張った強さに応じて心地よい音が鳴る
+      if (actionType === 'poyon') {
+        this.audioEngine.triggerPoyon(tension);
+        this.character.triggerBounce(1.0);
+      } else {
+        this.audioEngine.triggerBion(tension);
+        this.character.triggerBounce(1.6);
+      }
       return null;
     }
 
     const diff = Math.abs(candidate.targetTime - currentTime);
-    return this.judgeNote(candidate, diff, -1);
+    return this.judgeNote(candidate, diff, -1, tension);
   }
 
-  private judgeNote(note: Note, diff: number, lane: number): Judgment {
+  /**
+   * Spaceキー等からのショートカット
+   */
+  public handlePoyonInput(): Judgment | null {
+    return this.handleDragReleaseInput(0.3);
+  }
+
+  public handleBionInput(): Judgment | null {
+    return this.handleDragReleaseInput(0.8);
+  }
+
+  private judgeNote(note: Note, diff: number, lane: number, tension: number = 0.5): Judgment {
     let judgment: Judgment = 'MISS';
 
     if (diff <= 0.08) {
@@ -171,34 +196,44 @@ export class RhythmGame {
       const scoreMul = isFever ? 2 : 1;
 
       if (judgment === 'PERFECT') {
-        this.score += 300 * scoreMul;
-        this.grooveGauge = Math.min(100, this.grooveGauge + 7);
-        // 524 大歓喜ジャンプ＆笑顔＆ダンス！
+        this.score += (note.type === 'bion' ? 500 : 300) * scoreMul;
+        this.grooveGauge = Math.min(100, this.grooveGauge + (note.type === 'bion' ? 12 : 7));
         this.character.triggerHappy(0.7);
         if (this.combo >= 3) {
           this.character.triggerDance(0.8);
         }
-        this.scene.spawnLyric('PERFECT !', this.sequencer.getMode(), undefined, undefined, true);
-        this.scene.cameraShake = 5;
       } else if (judgment === 'GREAT') {
-        this.score += 180 * scoreMul;
-        this.grooveGauge = Math.min(100, this.grooveGauge + 4);
+        this.score += (note.type === 'bion' ? 300 : 180) * scoreMul;
+        this.grooveGauge = Math.min(100, this.grooveGauge + 5);
         this.character.triggerBounce(1.1);
         if (this.combo >= 5) {
           this.character.triggerDance(0.5);
         }
-        this.scene.spawnLyric('GREAT', this.sequencer.getMode());
       } else {
         this.score += 80 * scoreMul;
         this.grooveGauge = Math.min(100, this.grooveGauge + 2);
         this.character.triggerBounce(0.8);
       }
 
-      // サウンドトリガー
-      if (note.type === 'poyon') {
-        this.audioEngine.triggerBoing(0.9);
+      // サウンドトリガー＆専用リリック
+      if (note.type === 'bion') {
+        this.audioEngine.triggerBion(tension);
+        this.scene.spawnLyric('BION !!', this.sequencer.getMode(), undefined, undefined, true);
+        this.scene.cameraShake = 8;
+        this.character.triggerBounce(1.8);
+      } else if (note.type === 'poyon') {
+        this.audioEngine.triggerPoyon(tension);
+        this.scene.spawnLyric('POYON !', this.sequencer.getMode(), undefined, undefined, true);
+        this.scene.cameraShake = 4;
+        this.character.triggerBounce(1.2);
       } else {
         this.audioEngine.triggerScaleNote(lane >= 0 ? lane : 2);
+        if (judgment === 'PERFECT') {
+          this.scene.spawnLyric('PERFECT !', this.sequencer.getMode(), undefined, undefined, true);
+          this.scene.cameraShake = 5;
+        } else if (judgment === 'GREAT') {
+          this.scene.spawnLyric('GREAT', this.sequencer.getMode());
+        }
       }
 
       // コンボボーナス（10コンボごとにハート回復）
@@ -391,24 +426,55 @@ export class RhythmGame {
         ctx.restore();
 
       } else if (n.type === 'poyon') {
-        // POYON ノーツ（524の顔/スターマークの大型ノーツ）
+        // POYON ノーツ（小引き：スプリングバブル）
         const nx = width * 0.5;
-        const size = 32;
+        const radius = 24;
 
         ctx.save();
-        ctx.fillStyle = '#FFD538';
-        ctx.shadowColor = '#FFD538';
-        ctx.shadowBlur = 18;
+        ctx.fillStyle = '#1dd1a1';
+        ctx.shadowColor = '#1dd1a1';
+        ctx.shadowBlur = 14;
 
+        // ぷるぷるした楕円
         ctx.beginPath();
-        ctx.arc(nx, ny, size * 0.7, 0, Math.PI * 2);
+        ctx.ellipse(nx, ny, radius * 1.15, radius * 0.9, 0, 0, Math.PI * 2);
         ctx.fill();
 
-        ctx.fillStyle = '#185869';
-        ctx.font = '900 12px system-ui, sans-serif';
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '900 13px system-ui, sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText('POYON!', nx, ny);
+        ctx.fillText('POYON 🤏', nx, ny);
+        ctx.restore();
+
+      } else if (n.type === 'bion') {
+        // BION ノーツ（大引き：大迫力のスターリング）
+        const nx = width * 0.5;
+        const radius = 34;
+
+        ctx.save();
+        ctx.fillStyle = '#ffd538';
+        ctx.shadowColor = '#ff6b8b';
+        ctx.shadowBlur = 24;
+
+        // 二重リング
+        ctx.beginPath();
+        ctx.arc(nx, ny, radius, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.strokeStyle = '#ff6b8b';
+        ctx.lineWidth = 4;
+        ctx.stroke();
+
+        ctx.fillStyle = '#185869';
+        ctx.font = '900 15px system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('BION 🚀', nx, ny);
         ctx.restore();
       }
     });
