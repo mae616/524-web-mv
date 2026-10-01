@@ -174,4 +174,41 @@ describe('RhythmGame Core Logic', () => {
     expect(game.score).toBe(500);
     expect(mockCharacter.triggerHappy).toHaveBeenCalled();
   });
+
+  it('ノーミスクリア時に Sランク かつ FULL COMBO 判定になること', () => {
+    const { game } = context;
+    game.score = 6000;
+    game.perfectCount = 10;
+    game.greatCount = 2;
+    game.missCount = 0;
+
+    const result = game.calculateResult(true);
+    expect(result.rank).toBe('S');
+    expect(result.isFullCombo).toBe(true);
+    expect(result.isAllPerfect).toBe(false);
+  });
+
+  it('ALL PERFECT クリア時に isAllPerfect が true になること', () => {
+    const { game } = context;
+    game.score = 9000;
+    game.perfectCount = 15;
+    game.greatCount = 0;
+    game.goodCount = 0;
+    game.missCount = 0;
+
+    const result = game.calculateResult(true);
+    expect(result.rank).toBe('S');
+    expect(result.isFullCombo).toBe(true);
+    expect(result.isAllPerfect).toBe(true);
+  });
+
+  it('finishEarly でシーケンサーが停止し、isCompleted が true になること', () => {
+    const { game, mockSequencer } = context;
+    mockSequencer.stop = vi.fn();
+
+    const res = game.finishEarly();
+    expect(res.isClear).toBe(false);
+    expect((game as any).isCompleted).toBe(true);
+    expect(mockSequencer.stop).toHaveBeenCalled();
+  });
 });

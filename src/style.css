@@ -662,6 +662,27 @@ html, body {
   animation: badgePulse 1.8s ease-in-out infinite alternate;
 }
 
+.result-title-badge.full-combo {
+  background: linear-gradient(135deg, #00e5ff 0%, #1dd1a1 100%);
+  color: #0b3c47;
+  box-shadow: 0 4px 20px rgba(0, 229, 255, 0.6), 0 2px 0 #0d8272;
+  animation: badgePulse 1.4s ease-in-out infinite alternate;
+}
+
+.result-title-badge.all-perfect {
+  background: linear-gradient(135deg, #ff6b8b, #ffd538, #1dd1a1, #00e5ff, #a29bfe);
+  background-size: 300% 300%;
+  color: #124250;
+  box-shadow: 0 4px 24px rgba(255, 213, 56, 0.7);
+  animation: rainbowBadge 3s ease infinite, badgePulse 1.2s ease-in-out infinite alternate;
+}
+
+@keyframes rainbowBadge {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
 .result-title-badge.retire {
   background: rgba(255, 255, 255, 0.18);
   color: #fff;
@@ -749,6 +770,44 @@ html, body {
   text-shadow: 0 4px 18px rgba(255, 213, 56, 0.5);
   letter-spacing: 1px;
   line-height: 1.1;
+}
+
+.result-best-badge {
+  display: none;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  color: #ffd538;
+  background: rgba(255, 213, 56, 0.2);
+  border: 1px solid rgba(255, 213, 56, 0.5);
+  padding: 3px 12px;
+  border-radius: 20px;
+  margin-top: 4px;
+  margin-bottom: 4px;
+  box-shadow: 0 0 12px rgba(255, 213, 56, 0.4);
+  animation: badgePulse 1.2s ease-in-out infinite alternate;
+}
+
+.result-best-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 3px;
+  opacity: 0.85;
+}
+
+.result-best-row .best-lbl {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.result-best-row .best-num {
+  font-size: 13px;
+  font-weight: 900;
+  color: #ffd538;
 }
 
 .result-grid {

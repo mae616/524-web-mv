@@ -45,6 +45,8 @@ class App {
   private resultBadge = document.getElementById('result-badge') as HTMLElement | null;
   private resultRank = document.getElementById('result-rank') as HTMLElement | null;
   private resultScoreNumber = document.getElementById('result-score-number') as HTMLElement | null;
+  private resultBestBadge = document.getElementById('result-best-badge') as HTMLElement | null;
+  private resultBestScore = document.getElementById('result-best-score') as HTMLElement | null;
   private resultMaxCombo = document.getElementById('result-max-combo') as HTMLElement | null;
   private resultHearts = document.getElementById('result-hearts') as HTMLElement | null;
   private resultPerfects = document.getElementById('result-perfects') as HTMLElement | null;
@@ -333,8 +335,16 @@ class App {
     this.playIcon.textContent = '▶';
 
     if (this.resultBadge) {
-      this.resultBadge.textContent = result.isClear ? 'STAGE CLEAR !!' : 'SESSION RESULT';
-      this.resultBadge.className = `result-title-badge ${result.isClear ? 'clear' : 'retire'}`;
+      if (result.isAllPerfect) {
+        this.resultBadge.textContent = '🌈 ALL PERFECT !! 🌈';
+        this.resultBadge.className = 'result-title-badge all-perfect';
+      } else if (result.isFullCombo) {
+        this.resultBadge.textContent = '🌟 FULL COMBO !! 🌟';
+        this.resultBadge.className = 'result-title-badge full-combo';
+      } else {
+        this.resultBadge.textContent = result.isClear ? 'STAGE CLEAR !!' : 'SESSION RESULT';
+        this.resultBadge.className = `result-title-badge ${result.isClear ? 'clear' : 'retire'}`;
+      }
     }
 
     if (this.resultRank) {
@@ -344,6 +354,17 @@ class App {
 
     if (this.resultScoreNumber) {
       this.resultScoreNumber.textContent = result.score.toLocaleString();
+    }
+
+    if (this.resultBestBadge) {
+      this.resultBestBadge.style.display = result.isNewBest ? 'inline-block' : 'none';
+      if (result.isNewBest) {
+        this.character.triggerDance(2.5);
+      }
+    }
+
+    if (this.resultBestScore) {
+      this.resultBestScore.textContent = result.highScore.toLocaleString();
     }
 
     if (this.resultMaxCombo) {
@@ -370,16 +391,20 @@ class App {
    */
   private shareToX(): void {
     const res = this.latestResult;
-    const title = res?.isClear ? '🎉 524 Web MV【STAGE CLEAR!!】' : '🏁 524 Web MV【SESSION RESULT】';
+    let badgeText = res?.isClear ? '🎉 STAGE CLEAR !!' : '🏁 524 Web MV RESULT';
+    if (res?.isAllPerfect) badgeText = '🌈 ALL PERFECT CLEAR !!';
+    else if (res?.isFullCombo) badgeText = '🌟 FULL COMBO CLEAR !!';
+
     const rank = res?.rank || 'C';
     const score = (res?.score || 0).toLocaleString();
     const maxCombo = res?.maxCombo || 0;
     const perfects = res?.perfectCount || 0;
+    const newBestTag = res?.isNewBest ? '\n👑 【自己ベスト新記録を更新！！】' : '';
 
-    const text = `${title}
+    const text = `${badgeText}${newBestTag}
 ランク: [ ${rank} ]
 スコア: ${score} pts (最大コンボ: ${maxCombo} 🔥 / PERFECT: ${perfects})
-524と一緒にチル＆グルーヴ音ゲーを遊んだよ！みんなも最高スコアを目指して挑戦してみてね！✨`;
+524と一緒にチル＆グルーヴ音ゲーを遊んだよ！みんなも自己ベストを目指して挑戦してみてね！✨`;
 
     const url = 'https://mae616.github.io/524-web-mv/';
     const hashtags = '524Beat,524_MV,音ゲー';
@@ -392,12 +417,16 @@ class App {
    */
   private async copyResultText(): Promise<void> {
     const res = this.latestResult;
-    const title = res?.isClear ? '🎉 524 Web MV【STAGE CLEAR!!】' : '🏁 524 Web MV【SESSION RESULT】';
+    let badgeText = res?.isClear ? '🎉 STAGE CLEAR !!' : '🏁 524 Web MV RESULT';
+    if (res?.isAllPerfect) badgeText = '🌈 ALL PERFECT !!';
+    else if (res?.isFullCombo) badgeText = '🌟 FULL COMBO !!';
+
     const rank = res?.rank || 'C';
     const score = (res?.score || 0).toLocaleString();
     const maxCombo = res?.maxCombo || 0;
+    const newBestTag = res?.isNewBest ? ' 👑NEW BEST!' : '';
 
-    const text = `${title}
+    const text = `${badgeText}${newBestTag}
 ランク: [ ${rank} ] / スコア: ${score} pts (最大コンボ: ${maxCombo} 🔥)
 https://mae616.github.io/524-web-mv/
 #524Beat #524_MV`;

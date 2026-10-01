@@ -293,4 +293,27 @@ export class VisualScene {
       ctx.restore();
     });
   }
+
+  /**
+   * ステージクリア・フルコンボ時の祝賀コンフェッティ（紙吹雪）＆スター
+   */
+  public triggerCelebrationConfetti(): void {
+    const colors = ['#ffd538', '#ff6b8b', '#1dd1a1', '#00e5ff', '#a29bfe', '#ff9f43', '#ffffff'];
+    for (let i = 0; i < 60; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 80 + Math.random() * 220;
+      this.particles.push({
+        x: this.width * 0.5 + (Math.random() - 0.5) * 200,
+        y: this.height * 0.45 + (Math.random() - 0.5) * 100,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed - 60,
+        radius: 4 + Math.random() * 8,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        alpha: 1.0,
+        life: 0,
+        maxLife: 3.5 + Math.random() * 1.5,
+        type: Math.random() > 0.4 ? 'star' : 'bubble',
+      });
+    }
+  }
 }

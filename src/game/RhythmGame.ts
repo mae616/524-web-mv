@@ -20,6 +20,10 @@ export type Judgment = 'PERFECT' | 'GREAT' | 'GOOD' | 'MISS';
 export interface GameResult {
   isClear: boolean;
   score: number;
+  highScore: number;
+  isNewBest: boolean;
+  isFullCombo: boolean;
+  isAllPerfect: boolean;
   maxCombo: number;
   hearts: number;
   perfectCount: number;
@@ -99,6 +103,24 @@ export class RhythmGame {
       if (!ctx || !this.sequencer.getIsPlaying()) return;
 
       this.currentBar = ev.bar;
+
+      // 楽曲のドラマチック展開（16小節のステージ構成）
+      // 0〜3小節 (Bar 1〜4): CHILL INTRO
+      // 4〜11小節 (Bar 5〜12): MAIN GROOVE
+      // 12〜15小節 (Bar 13〜16): CLIMAX FEVER
+      if (ev.step === 0) {
+        if (ev.bar === 0 && this.sequencer.getMode() !== 'chill') {
+          this.sequencer.setMode('chill');
+          this.scene.spawnLyric('PHASE 1: CHILL INTRO', 'chill');
+        } else if (ev.bar === 4 && this.sequencer.getMode() === 'chill') {
+          this.sequencer.setMode('groove');
+          this.scene.spawnLyric('PHASE 2: GROOVE TIME !', 'groove');
+          this.character.triggerBounce(1.5);
+        } else if (ev.bar === 12 && this.sequencer.getMode() !== 'fever') {
+          this.triggerFeverUpgrade();
+          this.scene.spawnLyric('FINAL: FEVER CLIMAX !!', 'fever');
+        }
+      }
 
       // 目標小節に達したら新規ノーツの生成を停止（ステージクリア移行）
       if (ev.bar >= this.targetBars) return;
@@ -309,7 +331,7 @@ export class RhythmGame {
   }
 
   /**
-   * ゲーム結果の算出（S / A / B / C ランク）
+   * ゲーム結果の算出（S / A / B / C ランク、ハイスコア、フルコンボ判定）
    */
   public calculateResult(isClear: boolean): GameResult {
     let rank: 'S' | 'A' | 'B' | 'C' = 'C';
@@ -321,9 +343,37 @@ export class RhythmGame {
       rank = 'B';
     }
 
+    // ハイスコア判定（LocalStorage）
+    let currentHigh = 0;
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        const stored = window.localStorage.getItem('524_high_score');
+        currentHigh = stored ? parseInt(stored, 10) : 0;
+      }
+    } catch (_) {}
+
+    const isNewBest = this.score > currentHigh && this.score > 0;
+    const finalHigh = Math.max(currentHigh, this.score);
+
+    if (isNewBest) {
+      try {
+        if (typeof window !== 'undefined' && window.localStorage) {
+          window.localStorage.setItem('524_high_score', String(this.score));
+        }
+      } catch (_) {}
+    }
+
+    const totalNotes = this.perfectCount + this.greatCount + this.goodCount + this.missCount;
+    const isFullCombo = isClear && this.missCount === 0 && totalNotes > 0;
+    const isAllPerfect = isFullCombo && this.greatCount === 0 && this.goodCount === 0;
+
     return {
       isClear,
       score: this.score,
+      highScore: finalHigh,
+      isNewBest,
+      isFullCombo,
+      isAllPerfect,
       maxCombo: this.maxCombo,
       hearts: this.hearts,
       perfectCount: this.perfectCount,
@@ -355,6 +405,7 @@ export class RhythmGame {
     this.audioEngine.triggerClearVoiceAndFanfare();
     this.character.triggerDance(3.0);
     this.character.isFeverAura = true;
+    this.scene.triggerCelebrationConfetti();
     this.onGameClear?.(result);
   }
 
