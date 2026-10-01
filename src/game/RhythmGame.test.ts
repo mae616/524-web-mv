@@ -9,6 +9,7 @@ function createMockGame() {
     triggerBoing: vi.fn(),
     triggerPoyon: vi.fn(),
     triggerBion: vi.fn(),
+    triggerPerfectChime: vi.fn(),
   } as any;
 
   let currentMode = 'groove';
@@ -17,6 +18,7 @@ function createMockGame() {
     getIsPlaying: vi.fn(() => true),
     getMode: vi.fn(() => currentMode),
     setMode: vi.fn((m: string) => { currentMode = m; }),
+    setDifficulty: vi.fn(),
   } as any;
 
   const mockCharacter = {

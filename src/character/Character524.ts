@@ -1,5 +1,7 @@
 import { lerp } from '../utils/math';
 
+export type CharacterSkin = 'yellow' | 'pink' | 'mint' | 'blue' | 'purple';
+
 export interface Droplet {
   x: number;
   y: number;
@@ -28,6 +30,9 @@ export class Character524 {
   public x: number = 0;
   public y: number = 0;
   public baseRadius: number = 135;
+
+  // カスタムスキン（着せ替え）
+  private currentSkin: CharacterSkin = 'yellow';
 
   // 原図スプライト画像
   private charImage: HTMLImageElement | null = null;
@@ -345,6 +350,30 @@ export class Character524 {
     }
   }
 
+  public setSkin(skin: CharacterSkin): void {
+    this.currentSkin = skin;
+  }
+
+  public getSkin(): CharacterSkin {
+    return this.currentSkin;
+  }
+
+  private getSkinFilter(): string {
+    switch (this.currentSkin) {
+      case 'pink':
+        return 'hue-rotate(-45deg) saturate(1.25)';
+      case 'mint':
+        return 'hue-rotate(60deg) saturate(1.15)';
+      case 'blue':
+        return 'hue-rotate(155deg) saturate(1.25)';
+      case 'purple':
+        return 'hue-rotate(215deg) saturate(1.2)';
+      case 'yellow':
+      default:
+        return 'none';
+    }
+  }
+
   /**
    * Canvasレンダリング
    */
@@ -391,6 +420,12 @@ export class Character524 {
       ctx.save();
       ctx.translate(eyeShiftX, eyeShiftY);
 
+      // スキンフィルターの適用
+      const filter = this.getSkinFilter();
+      if (filter !== 'none') {
+        ctx.filter = filter;
+      }
+
       // 原作スプライトを描画
       ctx.drawImage(
         this.charImage,
@@ -399,6 +434,8 @@ export class Character524 {
         drawWidth,
         drawHeight
       );
+
+      ctx.filter = 'none';
 
       // FEVERオーラ描画（全身からゴールドのきらめきと光背）
       if (this.isFeverAura) {

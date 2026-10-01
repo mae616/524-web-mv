@@ -199,64 +199,126 @@ export class Synth {
   }
 
   /**
-   * シグネチャ表現: 524ちょっと引っ張り「ポヨンッ♪」音
+   * シグネチャ表現: 524ちょっと引っ張り「ポヨンッ♪」音（フィルターモジュレーション強化）
    * @param tension 0.0〜0.45（軽やかな引っ張り）
    */
   public playPoyon(tension: number = 0.3, time: number = this.ctx.currentTime): void {
-    const osc = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
-
-    osc.type = 'sine';
-    const startFreq = 420 + tension * 280;
-    const targetFreq = startFreq * 1.35;
-
-    // キュートなスプリング音（上昇してからピョンと跳ねる）
-    osc.frequency.setValueAtTime(startFreq, time);
-    osc.frequency.exponentialRampToValueAtTime(targetFreq, time + 0.09);
-    osc.frequency.exponentialRampToValueAtTime(startFreq * 0.95, time + 0.22);
-
-    gain.gain.setValueAtTime(0.35, time);
-    gain.gain.exponentialRampToValueAtTime(0.001, time + 0.25);
-
-    osc.connect(gain);
-    gain.connect(this.masterNode);
-
-    osc.start(time);
-    osc.stop(time + 0.25);
-  }
-
-  /**
-   * シグネチャ表現: 524大きく引っ張り「ビヨ〜〜ン♪」音
-   * @param tension 0.45〜1.0（ダイナミックな大引っ張り）
-   */
-  public playBion(tension: number = 0.8, time: number = this.ctx.currentTime): void {
-    const osc = this.ctx.createOscillator();
+    const osc1 = this.ctx.createOscillator();
+    const osc2 = this.ctx.createOscillator();
     const filter = this.ctx.createBiquadFilter();
     const gain = this.ctx.createGain();
 
-    osc.type = 'triangle';
-    const startFreq = 260 + tension * 240;
-    const dropFreq = 110 + tension * 40;
+    osc1.type = 'sine';
+    osc2.type = 'triangle';
 
-    // リッチな周波数ベンド＆ウォブル
-    osc.frequency.setValueAtTime(startFreq, time);
-    osc.frequency.exponentialRampToValueAtTime(dropFreq, time + 0.28);
-    osc.frequency.linearRampToValueAtTime(dropFreq * 1.5, time + 0.42);
-    osc.frequency.exponentialRampToValueAtTime(dropFreq * 0.9, time + 0.65);
+    const startFreq = 400 + tension * 260;
+    const peakFreq = startFreq * 1.5;
 
-    filter.type = 'lowpass';
-    filter.frequency.setValueAtTime(1600, time);
-    filter.frequency.exponentialRampToValueAtTime(600, time + 0.65);
+    // スプリングピッチスイープ（急上昇してポンッと跳ね返る）
+    osc1.frequency.setValueAtTime(startFreq, time);
+    osc1.frequency.exponentialRampToValueAtTime(peakFreq, time + 0.07);
+    osc1.frequency.exponentialRampToValueAtTime(startFreq * 0.9, time + 0.22);
 
-    gain.gain.setValueAtTime(0.5, time);
-    gain.gain.exponentialRampToValueAtTime(0.001, time + 0.7);
+    osc2.frequency.setValueAtTime(startFreq * 2, time);
+    osc2.frequency.exponentialRampToValueAtTime(peakFreq * 2, time + 0.07);
+    osc2.frequency.exponentialRampToValueAtTime(startFreq * 1.8, time + 0.22);
 
-    osc.connect(filter);
+    // バンドパスフィルターでゴムまりのような弾力質感を付与
+    filter.type = 'bandpass';
+    filter.Q.setValueAtTime(3.2, time);
+    filter.frequency.setValueAtTime(startFreq * 1.2, time);
+    filter.frequency.exponentialRampToValueAtTime(peakFreq * 1.6, time + 0.07);
+    filter.frequency.exponentialRampToValueAtTime(startFreq, time + 0.24);
+
+    gain.gain.setValueAtTime(0.4, time);
+    gain.gain.exponentialRampToValueAtTime(0.001, time + 0.26);
+
+    osc1.connect(filter);
+    osc2.connect(filter);
     filter.connect(gain);
     gain.connect(this.masterNode);
 
-    osc.start(time);
-    osc.stop(time + 0.7);
+    osc1.start(time);
+    osc2.start(time);
+    osc1.stop(time + 0.26);
+    osc2.stop(time + 0.26);
+  }
+
+  /**
+   * シグネチャ表現: 524大きく引っ張り「ビヨ〜〜ン♪」音（深みのあるウォブル弾力音）
+   * @param tension 0.45〜1.0（ダイナミックな大引っ張り）
+   */
+  public playBion(tension: number = 0.8, time: number = this.ctx.currentTime): void {
+    const osc1 = this.ctx.createOscillator();
+    const osc2 = this.ctx.createOscillator();
+    const filter = this.ctx.createBiquadFilter();
+    const gain = this.ctx.createGain();
+
+    osc1.type = 'triangle';
+    osc2.type = 'sawtooth';
+
+    const startFreq = 280 + tension * 260;
+    const dropFreq = 120 + tension * 40;
+
+    // ピッチベンド＆うねり
+    osc1.frequency.setValueAtTime(startFreq, time);
+    osc1.frequency.exponentialRampToValueAtTime(dropFreq, time + 0.26);
+    osc1.frequency.linearRampToValueAtTime(dropFreq * 1.45, time + 0.42);
+    osc1.frequency.exponentialRampToValueAtTime(dropFreq * 0.95, time + 0.65);
+
+    osc2.frequency.setValueAtTime(startFreq * 1.01, time); // わずかなデチューンで太い厚み
+    osc2.frequency.exponentialRampToValueAtTime(dropFreq * 1.01, time + 0.26);
+    osc2.frequency.linearRampToValueAtTime(dropFreq * 1.45 * 1.01, time + 0.42);
+    osc2.frequency.exponentialRampToValueAtTime(dropFreq * 0.95 * 1.01, time + 0.65);
+
+    // ローパスフィルターにレゾナンスを効かせてビヨ〜〜ン感を強調
+    filter.type = 'lowpass';
+    filter.Q.setValueAtTime(6.0, time);
+    filter.frequency.setValueAtTime(2400, time);
+    filter.frequency.exponentialRampToValueAtTime(450, time + 0.35);
+    filter.frequency.exponentialRampToValueAtTime(900, time + 0.5);
+    filter.frequency.exponentialRampToValueAtTime(300, time + 0.68);
+
+    gain.gain.setValueAtTime(0.48, time);
+    gain.gain.exponentialRampToValueAtTime(0.001, time + 0.7);
+
+    osc1.connect(filter);
+    osc2.connect(filter);
+    filter.connect(gain);
+    gain.connect(this.masterNode);
+
+    osc1.start(time);
+    osc2.start(time);
+    osc1.stop(time + 0.7);
+    osc2.stop(time + 0.7);
+  }
+
+  /**
+   * PERFECT判定時のきらめくクリスタルチャイム音
+   */
+  public playPerfectChime(time: number = this.ctx.currentTime): void {
+    const osc1 = this.ctx.createOscillator();
+    const osc2 = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+
+    osc1.type = 'sine';
+    osc2.type = 'sine';
+
+    // C6 (1046.5Hz) と G6 (1567.9Hz) の澄んだ協和ベル
+    osc1.frequency.setValueAtTime(1046.5, time);
+    osc2.frequency.setValueAtTime(1567.9, time);
+
+    gain.gain.setValueAtTime(0.22, time);
+    gain.gain.exponentialRampToValueAtTime(0.001, time + 0.35);
+
+    osc1.connect(gain);
+    osc2.connect(gain);
+    gain.connect(this.masterNode);
+
+    osc1.start(time);
+    osc2.start(time);
+    osc1.stop(time + 0.35);
+    osc2.stop(time + 0.35);
   }
 
   /**

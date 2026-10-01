@@ -109,8 +109,8 @@ html, body {
 }
 
 .preview-img {
-  width: 92%;
-  height: 92%;
+  width: 76%;
+  height: 76%;
   object-fit: contain;
 }
 
@@ -180,6 +180,54 @@ html, body {
   background: #ff6b8b;
   color: #fff;
   box-shadow: 0 2px 10px rgba(255, 107, 139, 0.5);
+}
+
+/* 524 スキンカラー着せ替えセレクター */
+.skin-selector {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: rgba(0, 0, 0, 0.18);
+  padding: 6px 14px;
+  border-radius: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  margin-bottom: 22px;
+}
+
+.skin-label {
+  font-size: 10.5px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.skin-dots {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.skin-btn {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  background: var(--skin-c);
+  cursor: pointer;
+  padding: 0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.skin-btn:hover {
+  transform: scale(1.22);
+}
+
+.skin-btn.active {
+  transform: scale(1.28);
+  border-color: #fff;
+  box-shadow: 0 0 10px var(--skin-c), 0 2px 8px rgba(0, 0, 0, 0.35);
 }
 
 .start-button {
@@ -675,36 +723,73 @@ html, body {
     display: none;
   }
 
-  /* 上部ヘッダーHUDのスマホ最適化 */
-  .hud-header {
-    top: 10px;
-    padding: 0 10px;
-    gap: 6px;
+  /* 上部ヘッダーHUDのスマホ最適化（375px以下でも絶対にはみ出さない） */
+  .duo-header {
+    top: 8px;
+    left: 8px;
+    right: 8px;
+    gap: 4px;
+    justify-content: space-between;
   }
 
-  .stat-badge {
-    padding: 5px 8px;
-    border-radius: 16px;
+  .brand-pill {
+    padding: 4px 8px;
     gap: 4px;
   }
 
+  .brand-dot {
+    width: 8px;
+    height: 8px;
+  }
+
+  .brand-title {
+    font-size: 11px;
+    letter-spacing: 0.5px;
+  }
+
+  @media (max-width: 440px) {
+    .brand-title {
+      display: none; /* 極小スマホではドットのみにして幅を確保 */
+    }
+    .brand-pill {
+      padding: 6px 8px;
+    }
+  }
+
+  .groove-progress-wrapper {
+    max-width: 70px;
+    min-width: 36px;
+    height: 10px;
+    padding: 1.5px;
+    border-radius: 8px;
+  }
+
+  .status-stats {
+    gap: 4px;
+  }
+
+  .stat-badge {
+    padding: 4px 6px;
+    border-radius: 14px;
+    gap: 3px;
+  }
+
   .stat-badge .stat-icon {
-    font-size: 13px;
+    font-size: 11px;
   }
 
   .stat-badge .stat-val {
-    font-size: 13px;
+    font-size: 11.5px;
   }
 
-  .groove-meter-wrap {
-    min-width: 55px;
-    height: 12px;
+  .top-actions {
+    gap: 4px;
   }
 
   .glass-round-btn {
-    width: 36px;
-    height: 36px;
-    font-size: 15px;
+    width: 32px;
+    height: 32px;
+    font-size: 13px;
   }
 
   /* 下部操作ドックのスマホ最適化 */
@@ -820,6 +905,10 @@ html, body {
     width: 82px;
     height: 82px;
     margin-bottom: 8px;
+  }
+
+  .result-avatar {
+    padding: 10px;
   }
 
   .rank-circle {
@@ -1000,6 +1089,8 @@ html, body {
   width: 100%;
   height: 100%;
   object-fit: contain;
+  padding: 14px;
+  box-sizing: border-box;
   background: #38b6d8;
   border-radius: 50%;
   border: 3.5px solid #fff;

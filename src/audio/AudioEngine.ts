@@ -159,6 +159,14 @@ export class AudioEngine {
   }
 
   /**
+   * PERFECT判定時のクリスタルベルチャイム
+   */
+  public triggerPerfectChime(): void {
+    if (!this.synth || !this.ctx) return;
+    this.synth.playPerfectChime(this.ctx.currentTime);
+  }
+
+  /**
    * ステージクリア時のファンファーレ ＆ クリアボイス
    */
   public triggerClearVoiceAndFanfare(): void {

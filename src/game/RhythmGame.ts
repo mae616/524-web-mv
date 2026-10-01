@@ -105,6 +105,7 @@ export class RhythmGame {
    */
   public setDifficulty(diff: Difficulty): void {
     this.difficulty = diff;
+    this.sequencer.setDifficulty(diff);
     if (diff === 'easy') {
       this.noteSpeed = 1.65;
       this.targetBars = 12;
@@ -324,6 +325,10 @@ export class RhythmGame {
       }
 
       // サウンドトリガー＆専用リリック＆ハプティクス
+      if (judgment === 'PERFECT') {
+        this.audioEngine.triggerPerfectChime();
+      }
+
       if (note.type === 'bion') {
         this.audioEngine.triggerBion(tension);
         this.triggerHaptic('bion');

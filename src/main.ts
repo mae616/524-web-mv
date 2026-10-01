@@ -1,6 +1,6 @@
 import { AudioEngine } from './audio/AudioEngine';
 import { MusicSequencer, PlayMode, BeatEvent } from './audio/MusicSequencer';
-import { Character524 } from './character/Character524';
+import { Character524, CharacterSkin } from './character/Character524';
 import { VisualScene } from './visuals/VisualScene';
 import { RhythmGame, GameResult, Difficulty } from './game/RhythmGame';
 
@@ -23,6 +23,9 @@ class App {
   private startOverlay = document.getElementById('start-overlay') as HTMLElement;
   private startBtn = document.getElementById('start-btn') as HTMLButtonElement;
   private diffButtons = document.querySelectorAll<HTMLButtonElement>('.diff-btn');
+  private skinButtons = document.querySelectorAll<HTMLButtonElement>('.skin-btn');
+  private previewImg = document.querySelector<HTMLImageElement>('.preview-img');
+  private resultAvatar = document.querySelector<HTMLImageElement>('.result-avatar');
   private playPauseBtn = document.getElementById('play-pause-btn') as HTMLButtonElement;
   private playIcon = document.getElementById('play-icon') as HTMLElement;
   private muteBtn = document.getElementById('mute-btn') as HTMLButtonElement;
@@ -70,6 +73,7 @@ class App {
     this.scene = new VisualScene(window.innerWidth, window.innerHeight);
     this.rhythmGame = new RhythmGame(this.audioEngine, this.sequencer, this.character, this.scene);
 
+    this.loadSavedSkin();
     this.initEvents();
     this.syncGameStateToHUD();
     this.resize();
@@ -115,6 +119,17 @@ class App {
         this.rhythmGame.setDifficulty(diff);
         this.diffButtons.forEach((b) => b.classList.toggle('active', b.dataset.diff === diff));
         this.audioEngine.triggerScaleNote(2);
+      });
+    });
+
+    // 1.8 524 スキンカラー（着せ替え）セレクター
+    this.skinButtons.forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const skin = (btn.dataset.skin || 'yellow') as CharacterSkin;
+        this.applySkin(skin);
+        this.audioEngine.triggerPoyon(0.25);
+        this.character.triggerBounce(1.1);
       });
     });
 
@@ -531,6 +546,44 @@ https://mae616.github.io/524-web-mv/
     } else {
       this.scene.spawnLyric(`${mode.toUpperCase()} MODE`, mode);
     }
+  }
+
+  /**
+   * 保存済み524スキンの読み込み
+   */
+  private loadSavedSkin(): void {
+    try {
+      const saved = localStorage.getItem('524_skin') as CharacterSkin | null;
+      if (saved && ['yellow', 'pink', 'mint', 'blue', 'purple'].includes(saved)) {
+        this.applySkin(saved);
+      }
+    } catch (_) {}
+  }
+
+  /**
+   * 524スキンの適用（Canvas ＆ アバタープレビュー画像）
+   */
+  private applySkin(skin: CharacterSkin): void {
+    this.character.setSkin(skin);
+    this.skinButtons.forEach((b) => b.classList.toggle('active', b.dataset.skin === skin));
+
+    // CSSフィルターの算出
+    let cssFilter = 'none';
+    if (skin === 'pink') cssFilter = 'hue-rotate(-45deg) saturate(1.25)';
+    else if (skin === 'mint') cssFilter = 'hue-rotate(60deg) saturate(1.15)';
+    else if (skin === 'blue') cssFilter = 'hue-rotate(155deg) saturate(1.25)';
+    else if (skin === 'purple') cssFilter = 'hue-rotate(215deg) saturate(1.2)';
+
+    if (this.previewImg) {
+      this.previewImg.style.filter = cssFilter;
+    }
+    if (this.resultAvatar) {
+      this.resultAvatar.style.filter = cssFilter;
+    }
+
+    try {
+      localStorage.setItem('524_skin', skin);
+    } catch (_) {}
   }
 
   /**

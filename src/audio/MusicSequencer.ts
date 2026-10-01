@@ -1,6 +1,7 @@
 import { AudioEngine } from './AudioEngine';
 
 export type PlayMode = 'chill' | 'groove' | 'fever';
+export type Difficulty = 'easy' | 'normal' | 'hard';
 
 export interface BeatEvent {
   step: number;     // 0〜15
@@ -16,8 +17,9 @@ export interface BeatEvent {
 export class MusicSequencer {
   private engine: AudioEngine;
   private isPlaying: boolean = false;
-  private bpm: number = 118;
+  private bpm: number = 116;
   private mode: PlayMode = 'groove';
+  private difficulty: Difficulty = 'normal';
 
   private currentStep: number = 0;
   private currentBar: number = 0;
@@ -41,6 +43,16 @@ export class MusicSequencer {
 
   constructor(engine: AudioEngine) {
     this.engine = engine;
+    this.updateBpm();
+  }
+
+  public setDifficulty(diff: Difficulty): void {
+    this.difficulty = diff;
+    this.updateBpm();
+  }
+
+  public getDifficulty(): Difficulty {
+    return this.difficulty;
   }
 
   public setBpm(newBpm: number): void {
@@ -53,12 +65,24 @@ export class MusicSequencer {
 
   public setMode(newMode: PlayMode): void {
     this.mode = newMode;
-    if (newMode === 'chill') {
-      this.setBpm(92);
-    } else if (newMode === 'groove') {
-      this.setBpm(118);
-    } else if (newMode === 'fever') {
-      this.setBpm(132);
+    this.updateBpm();
+  }
+
+  private updateBpm(): void {
+    // 難易度（EASY / NORMAL / HARD） × モード（CHILL / GROOVE / FEVER）に応じた動的BPM
+    let base = 116;
+    if (this.difficulty === 'easy') {
+      base = 96;
+    } else if (this.difficulty === 'hard') {
+      base = 132;
+    }
+
+    if (this.mode === 'chill') {
+      this.bpm = Math.round(base * 0.85);
+    } else if (this.mode === 'fever') {
+      this.bpm = Math.round(base * 1.12);
+    } else {
+      this.bpm = base;
     }
   }
 
@@ -179,11 +203,12 @@ export class MusicSequencer {
     }
 
     // 4. アルペジオ・メロディ
-    if (isFever || (this.mode === 'groove' && (step % 2 === 0))) {
+    const isHard = this.difficulty === 'hard';
+    if (isFever || isHard || (this.mode === 'groove' && (step % 2 === 0))) {
       const arpNoteOffset = this.arpPattern[step % this.arpPattern.length];
       const midi = chord.notes[0] + arpNoteOffset;
       const freq = 440 * Math.pow(2, (midi - 69) / 12);
-      synth.playPluck(freq, time, 0.2);
+      synth.playPluck(freq, time, isHard ? 0.16 : 0.2);
     }
 
     // 5. アニメーションイベント通知
