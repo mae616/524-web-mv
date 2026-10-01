@@ -64,6 +64,32 @@ def get_contours_for_mask(mask, w, h):
 
     return loops
 
+def smooth_moving_average(points, window=7, iterations=2):
+    """
+    点列の移動平均（ガウシアン風重み付け）で微小ジッターを除去
+    """
+    pts = list(points)
+    n = len(pts)
+    if n < window:
+        return pts
+    half = window // 2
+
+    for _ in range(iterations):
+        new_pts = []
+        for i in range(n):
+            sx = 0.0
+            sy = 0.0
+            w_sum = 0.0
+            for k in range(-half, half + 1):
+                idx = (i + k) % n
+                w = math.exp(-0.5 * (k / (half * 0.6)) ** 2)
+                sx += pts[idx][0] * w
+                sy += pts[idx][1] * w
+                w_sum += w
+            new_pts.append((sx / w_sum, sy / w_sum))
+        pts = new_pts
+    return pts
+
 def chaikin_smooth(points, iterations=3):
     """
     Chaikinのアルゴリズムでポリゴンの角を丸め、有機的で滑らかなスプラインにする
@@ -82,10 +108,11 @@ def chaikin_smooth(points, iterations=3):
         points = new_points
     return points
 
-def loops_to_svg_path(loops):
+def loops_to_svg_path(loops, window=7):
     path_cmds = []
     for loop in loops:
-        smoothed = chaikin_smooth(loop, iterations=3)
+        ma_smoothed = smooth_moving_average(loop, window=window, iterations=2)
+        smoothed = chaikin_smooth(ma_smoothed, iterations=3)
         if not smoothed:
             continue
         cmd = f"M {smoothed[0][0]:.2f} {smoothed[0][1]:.2f}"
@@ -101,12 +128,14 @@ def main():
     pixels = img.load()
 
     # マスクの作成
-    # 1: ボディ全体
-    # 2: 白目
-    # 3: 数字
-    # 4: 口
-    # 5: しずく
+    # 1: ボディ外形全体
+    # 2: 黄色ボディ内側
+    # 3: 白目
+    # 4: 数字
+    # 5: 口
+    # 6: しずく
     masks = {
+        'outline': [[False for _ in range(w)] for _ in range(h)],
         'body': [[False for _ in range(w)] for _ in range(h)],
         'eyes': [[False for _ in range(w)] for _ in range(h)],
         'numbers': [[False for _ in range(w)] for _ in range(h)],
@@ -117,9 +146,10 @@ def main():
     for y in range(h):
         for x in range(w):
             r, g, b, a = pixels[x, y]
-            if a < 70:
+            if a < 45:
                 continue
 
+            masks['outline'][y][x] = True
             masks['body'][y][x] = True
 
             if r > 215 and g > 215 and b > 205:
@@ -134,10 +164,26 @@ def main():
     svg_parts = {}
     for part, m in masks.items():
         loops = get_contours_for_mask(m, w, h)
-        svg_parts[part] = loops_to_svg_path(loops)
+        # ボディ外周は強めのウィンドウ（11）でジッター・凹凸を完全除去
+        win = 11 if part in ('outline', 'body') else 5
+        svg_parts[part] = loops_to_svg_path(loops, window=win)
+
+    # 右下の2つのしずく（原作の完全な位置と形状）
+    # しずく1: 中心(158, 215) 半径6.5, しずく2: 中心(182, 229) 半径6.0
+    droplet_svg = '''
+    <g id="droplets">
+      <!-- しずく1 (上側) -->
+      <circle cx="157.5" cy="215.5" r="6.5" fill="#FFDA29" stroke="#18B8A6" stroke-width="2" />
+      <!-- しずく2 (下側) -->
+      <circle cx="182" cy="229.5" r="5.8" fill="#FFDA29" stroke="#18B8A6" stroke-width="2" />
+    </g>
+    '''
 
     svg_content = f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {h}" width="{w}" height="{h}">
-  <!-- 524 Yellow Body (Smooth Vector Outline) -->
+  <!-- 524 Emerald Outline (原図の縁取り) -->
+  <path id="outline" fill="#18B8A6" stroke="#18B8A6" stroke-width="3" stroke-linejoin="round" d="{svg_parts['outline']}" />
+
+  <!-- 524 Yellow Body (Ultra-smooth) -->
   <path id="body" fill="#FFDA29" d="{svg_parts['body']}" />
 
   <!-- 3-Bubble White Eyes -->
@@ -149,8 +195,8 @@ def main():
   <!-- Teal Mouth -->
   <path id="mouth" fill="#186270" d="{svg_parts['mouth']}" />
 
-  <!-- Droplets -->
-  <path id="droplets" fill="#FFDA29" d="{svg_parts['droplets']}" />
+  <!-- Droplets (原図の位置) -->
+  {droplet_svg}
 </svg>
 '''
     with open('public/assets/524_character.svg', 'w') as f:
@@ -158,7 +204,7 @@ def main():
     with open('doc/input/design/assets/524_character.svg', 'w') as f:
         f.write(svg_content)
 
-    print("Ultra-smooth Chaikin Bézier SVG generated!")
+    print("Ultra-smooth Chaikin + Moving-Average Bézier SVG generated!")
 
 if __name__ == '__main__':
     main()

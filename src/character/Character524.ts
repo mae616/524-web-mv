@@ -415,33 +415,57 @@ export class Character524 {
         ctx.restore();
       }
 
-      // まばたき＆ハッピー笑顔オーバーレイ（3つの目が個別に愛らしくパチッと閉じる）
-      if (this.isBlinking || this.happyTimer > 0) {
-        // 3つの目の中心位置（原作SVG内の比率）
+      // 524の目は常に原作通りの「5 2 4」をそのまま維持！
+      // 喜んでいる時（happyTimer > 0 / PERFECT時）は、524の目のまわりにキラキラ星（✨）や音符が弾けて嬉しさを表現！
+      if (this.happyTimer > 0) {
+        ctx.save();
         const eyeY = -drawHeight * 0.08;
         const eyeCentersX = [-drawWidth * 0.24, 0, drawWidth * 0.25];
-        const bubbleR = drawWidth * 0.125;
+        const t = this.floatTime * 8;
 
-        // 1. 各目の数字「5」「2」「4」の部分だけを白い泡でパチッとカバー
-        ctx.fillStyle = '#FFFDF6';
-        eyeCentersX.forEach(cx => {
+        // 3つの目の周囲に舞うキラキラ星（✨）と音符（♪）
+        eyeCentersX.forEach((cx, idx) => {
+          const sparkAngle = t + idx * (Math.PI * 2 / 3);
+          const sparkDist = drawWidth * 0.16 + Math.sin(t * 1.5 + idx) * 6;
+          const sx = cx + Math.cos(sparkAngle) * sparkDist;
+          const sy = eyeY + Math.sin(sparkAngle) * (sparkDist * 0.7);
+
+          // 4点星のスパークル
+          ctx.save();
+          ctx.translate(sx, sy);
+          ctx.rotate(sparkAngle);
+          ctx.fillStyle = idx === 1 ? '#FFD538' : '#FF6B8B';
+          ctx.shadowColor = '#FFD538';
+          ctx.shadowBlur = 8;
           ctx.beginPath();
-          ctx.arc(cx, eyeY, bubbleR, 0, Math.PI * 2);
+          const r1 = 6;
+          const r2 = 2.2;
+          for (let p = 0; p < 8; p++) {
+            const rad = (p * Math.PI) / 4;
+            const dist = p % 2 === 0 ? r1 : r2;
+            const px = Math.cos(rad) * dist;
+            const py = Math.sin(rad) * dist;
+            if (p === 0) ctx.moveTo(px, py);
+            else ctx.lineTo(px, py);
+          }
+          ctx.closePath();
           ctx.fill();
+          ctx.restore();
         });
 
-        // 2. 3つの目にそれぞれ個別の閉じたライン（にっこり目 ^ ^ ^）を描く
-        ctx.strokeStyle = this.colors.mouthTeal;
-        ctx.lineWidth = 3.5;
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
+        // 頭の上に嬉しそうに舞う音符（♪）
+        ctx.save();
+        const noteX = drawWidth * 0.22;
+        const noteY = -drawHeight * 0.44 - (1.0 - this.happyTimer) * 16;
+        ctx.fillStyle = '#FF9F43';
+        ctx.font = '900 16px system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.shadowColor = 'rgba(255, 159, 67, 0.6)';
+        ctx.shadowBlur = 6;
+        ctx.fillText('♪', noteX, noteY);
+        ctx.restore();
 
-        eyeCentersX.forEach(cx => {
-          ctx.beginPath();
-          // 笑顔・ウィンク風のアーチ（^）
-          ctx.arc(cx, eyeY + 2, bubbleR * 0.55, Math.PI * 1.15, Math.PI * 1.85, false);
-          ctx.stroke();
-        });
+        ctx.restore();
       }
 
       // Duolingo風: 汗リアクション（ミス時「あちゃ〜！」）
