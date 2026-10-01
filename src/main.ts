@@ -216,10 +216,11 @@ class App {
       }
     });
 
-    // 8. 5レーン・タップパッド（1〜5）のタップ・クリック操作
+    // 8. 5レーン・タップパッド（1〜5）のタップ・クリック操作（スマホマルチタッチ最適化）
     this.rhythmPads.forEach((pad) => {
       const lane = parseInt(pad.dataset.lane || '0', 10);
       const trigger = (e: Event) => {
+        e.preventDefault();
         e.stopPropagation();
         this.rhythmGame.handleTapInput(lane);
         pad.classList.add('active');
@@ -230,6 +231,7 @@ class App {
 
     // 9. 引っ張りスリングボタン（POYON / BION）の操作
     this.slingPoyonBtn?.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
       e.stopPropagation();
       this.rhythmGame.handlePoyonInput();
       this.slingPoyonBtn?.classList.add('active');
@@ -237,6 +239,7 @@ class App {
     });
 
     this.slingBionBtn?.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
       e.stopPropagation();
       this.rhythmGame.handleBionInput();
       this.slingBionBtn?.classList.add('active');

@@ -24,15 +24,21 @@
   padding: 0;
   user-select: none;
   -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 html, body {
   width: 100%;
   height: 100%;
   overflow: hidden;
+  position: fixed;
+  inset: 0;
+  touch-action: manipulation;
   background-color: var(--color-sky);
   font-family: var(--font-family);
   color: var(--color-white);
+  -webkit-text-size-adjust: 100%;
 }
 
 #mv-canvas {
@@ -618,17 +624,183 @@ html, body {
   .hint-chips {
     display: none;
   }
-  .hud-dock-wrapper {
-    bottom: 16px;
-    width: 92%;
+
+  /* 上部ヘッダーHUDのスマホ最適化 */
+  .hud-header {
+    top: 10px;
+    padding: 0 10px;
+    gap: 6px;
   }
-  .pill-dock {
+
+  .stat-badge {
+    padding: 5px 8px;
+    border-radius: 16px;
+    gap: 4px;
+  }
+
+  .stat-badge .stat-icon {
+    font-size: 13px;
+  }
+
+  .stat-badge .stat-val {
+    font-size: 13px;
+  }
+
+  .groove-meter-wrap {
+    min-width: 55px;
+    height: 12px;
+  }
+
+  .glass-round-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 15px;
+  }
+
+  /* 下部操作ドックのスマホ最適化 */
+  .hud-dock-wrapper {
+    bottom: 12px;
+    width: 98%;
+    max-width: 440px;
+    gap: 8px;
+  }
+
+  .rhythm-pad-bar {
     width: 100%;
+    padding: 6px 6px;
+    gap: 4px;
+    border-radius: 20px;
     justify-content: space-between;
   }
+
+  .rhythm-pad {
+    flex: 1 1 0;
+    min-width: 0;
+    max-width: 46px;
+    height: 48px;
+    border-radius: 12px;
+    box-shadow: 0 4px 0 rgba(0, 0, 0, 0.25);
+  }
+
+  .rhythm-pad .pad-num {
+    font-size: 17px;
+  }
+
+  .pad-sub-key {
+    display: none; /* スマホではキーボードガイドを隠して数字を大きく */
+  }
+
+  .pad-divider {
+    height: 28px;
+    margin: 0 1px;
+  }
+
+  .rhythm-sling-btn {
+    flex: 1.25 1 0;
+    min-width: 0;
+    max-width: 58px;
+    height: 48px;
+    border-radius: 12px;
+    padding: 0 2px;
+    box-shadow: 0 4px 0 rgba(0, 0, 0, 0.25);
+  }
+
+  .rhythm-sling-btn .sling-icon {
+    font-size: 13px;
+  }
+
+  .rhythm-sling-btn .sling-text {
+    font-size: 9.5px;
+  }
+
+  .sling-sub-key {
+    display: none; /* スマホではキーボードガイドを隠す */
+  }
+
+  /* 下部ピルドック */
+  .pill-dock {
+    width: 100%;
+    padding: 5px 8px;
+    justify-content: space-between;
+    border-radius: 30px;
+  }
+
+  .dock-play-btn {
+    width: 34px;
+    height: 34px;
+    font-size: 13px;
+  }
+
   .dock-segment-btn {
-    padding: 6px 12px;
-    font-size: 11px;
+    padding: 5px 9px;
+    font-size: 10px;
+  }
+
+  .dock-eq-visualizer {
+    display: none; /* スマホではピルドック幅を確保するためEQを非表示 */
+  }
+
+  /* リザルトカードのスマホ最適化（画面内に必ず収める） */
+  .result-card {
+    padding: 20px 18px 16px;
+    border-radius: 26px;
+    max-width: 330px;
+    width: 92%;
+    max-height: 92vh;
+    overflow-y: auto;
+  }
+
+  .result-title-badge {
+    font-size: 12px;
+    padding: 4px 14px;
+    margin-bottom: 10px;
+  }
+
+  .result-char-preview {
+    width: 82px;
+    height: 82px;
+    margin-bottom: 8px;
+  }
+
+  .rank-circle {
+    width: 36px;
+    height: 36px;
+    font-size: 18px;
+  }
+
+  .result-score-block {
+    margin-bottom: 10px;
+  }
+
+  .result-score-num {
+    font-size: 30px;
+  }
+
+  .result-grid {
+    gap: 6px;
+    margin-bottom: 14px;
+  }
+
+  .result-stat-item {
+    padding: 6px 8px;
+    border-radius: 12px;
+  }
+
+  .result-stat-item .lbl {
+    font-size: 8.5px;
+  }
+
+  .result-stat-item .val {
+    font-size: 14px;
+  }
+
+  .result-actions {
+    gap: 8px;
+  }
+
+  .action-btn {
+    padding: 10px 14px;
+    font-size: 12.5px;
   }
 }
 
