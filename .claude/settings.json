@@ -21,6 +21,7 @@
       "mcp__blender__*",
       "mcp__drawio__*",
       "mcp__ide__*",
+      "mcp__mobbin__*",
       "Bash(pwd)",
       "Bash(which *)",
       "Bash(ls *)",
