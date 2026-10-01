@@ -611,7 +611,7 @@ html, body {
 
 /* ============================================================
    リザルトオーバーレイ＆カード（クリア時 ＆ リタイア時）
-   Mobbin参考のモダン・グラスモーダル ＆ ゲームリザルト演出
+   Mobbin参考（Duolingo/Quizlet風）のモダン・グラスモーダル
    ============================================================ */
 #result-overlay {
   z-index: 60;
@@ -622,14 +622,14 @@ html, body {
   flex-direction: column;
   align-items: center;
   text-align: center;
-  padding: 32px 36px;
-  background: rgba(24, 76, 92, 0.65);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1.5px solid rgba(255, 255, 255, 0.35);
+  padding: 32px 34px 28px;
+  background: rgba(18, 62, 77, 0.82);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1.5px solid rgba(255, 255, 255, 0.38);
   border-radius: 36px;
-  box-shadow: 0 24px 60px rgba(10, 42, 54, 0.6), 0 0 40px rgba(255, 213, 56, 0.2);
-  max-width: 420px;
+  box-shadow: 0 24px 64px rgba(10, 36, 46, 0.7), 0 0 50px rgba(255, 213, 56, 0.18);
+  max-width: 400px;
   width: 90%;
   transform: scale(0.92);
   transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -646,27 +646,27 @@ html, body {
 }
 
 .result-title-badge {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 900;
   letter-spacing: 2px;
   text-transform: uppercase;
-  padding: 6px 20px;
-  border-radius: 20px;
-  margin-bottom: 18px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  padding: 7px 22px;
+  border-radius: 30px;
+  margin-bottom: 16px;
 }
 
 .result-title-badge.clear {
-  background: linear-gradient(135deg, #ffd538, #ff6b8b);
-  color: #1f6475;
-  box-shadow: 0 6px 20px rgba(255, 213, 56, 0.5);
+  background: linear-gradient(135deg, #ffd538 0%, #ff6b8b 100%);
+  color: #124250;
+  box-shadow: 0 4px 18px rgba(255, 213, 56, 0.55), 0 2px 0 #df4e70;
   animation: badgePulse 1.8s ease-in-out infinite alternate;
 }
 
 .result-title-badge.retire {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.18);
   color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 @keyframes badgePulse {
@@ -676,9 +676,9 @@ html, body {
 
 .result-char-preview {
   position: relative;
-  width: 104px;
-  height: 104px;
-  margin-bottom: 16px;
+  width: 106px;
+  height: 106px;
+  margin-bottom: 14px;
 }
 
 .result-avatar {
@@ -688,7 +688,7 @@ html, body {
   background: #38b6d8;
   border-radius: 50%;
   border: 3.5px solid #fff;
-  box-shadow: 0 10px 24px rgba(10, 42, 54, 0.4);
+  box-shadow: 0 10px 24px rgba(10, 42, 54, 0.4), 0 0 24px rgba(255, 213, 56, 0.35);
 }
 
 .rank-circle {
@@ -710,17 +710,19 @@ html, body {
 .rank-circle.rank-s {
   background: linear-gradient(135deg, #ffe066, #ff9900);
   color: #4a2800;
-  box-shadow: 0 0 20px rgba(255, 200, 0, 0.8);
+  box-shadow: 0 0 20px rgba(255, 200, 0, 0.85);
 }
 
 .rank-circle.rank-a {
   background: linear-gradient(135deg, #48dbfb, #10ac84);
   color: #fff;
+  box-shadow: 0 0 14px rgba(16, 172, 132, 0.6);
 }
 
 .rank-circle.rank-b {
   background: linear-gradient(135deg, #a29bfe, #6c5ce7);
   color: #fff;
+  box-shadow: 0 0 14px rgba(108, 92, 231, 0.6);
 }
 
 .rank-circle.rank-c {
@@ -729,23 +731,24 @@ html, body {
 }
 
 .result-score-block {
-  margin-bottom: 18px;
+  margin-bottom: 16px;
 }
 
 .result-score-label {
   font-size: 11px;
   font-weight: 800;
-  letter-spacing: 1.5px;
-  opacity: 0.8;
+  letter-spacing: 1.8px;
+  opacity: 0.85;
   margin-bottom: 2px;
 }
 
 .result-score-num {
-  font-size: 38px;
+  font-size: 40px;
   font-weight: 900;
   color: var(--color-body-yellow);
-  text-shadow: 0 4px 16px rgba(255, 213, 56, 0.4);
+  text-shadow: 0 4px 18px rgba(255, 213, 56, 0.5);
   letter-spacing: 1px;
+  line-height: 1.1;
 }
 
 .result-grid {
@@ -753,31 +756,54 @@ html, body {
   grid-template-columns: 1fr 1fr;
   gap: 10px;
   width: 100%;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 
 .result-stat-item {
   background: rgba(255, 255, 255, 0.12);
   border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 16px;
-  padding: 10px 14px;
+  border-radius: 18px;
+  padding: 10px 12px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.result-stat-item:hover {
+  background: rgba(255, 255, 255, 0.18);
+  transform: translateY(-2px);
+}
+
+.result-stat-item.stat-combo {
+  border-bottom: 3px solid #ff9f43;
+}
+
+.result-stat-item.stat-hearts {
+  border-bottom: 3px solid #ff6b8b;
+}
+
+.result-stat-item.stat-perfect {
+  border-bottom: 3px solid #1dd1a1;
+}
+
+.result-stat-item.stat-miss {
+  border-bottom: 3px solid #54a0ff;
 }
 
 .result-stat-item .lbl {
   font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.8px;
-  opacity: 0.75;
+  font-weight: 800;
+  letter-spacing: 1px;
+  opacity: 0.8;
   margin-bottom: 3px;
 }
 
 .result-stat-item .val {
-  font-size: 16px;
-  font-weight: 800;
+  font-size: 17px;
+  font-weight: 900;
+  color: #fff;
 }
 
 .result-actions {
@@ -793,52 +819,64 @@ html, body {
   justify-content: center;
   gap: 8px;
   width: 100%;
-  padding: 13px 20px;
+  padding: 14px 20px;
   border-radius: 50px;
   font-size: 14px;
-  font-weight: 800;
+  font-weight: 900;
   letter-spacing: 0.6px;
   cursor: pointer;
   border: none;
-  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease, background 0.2s ease;
+  transition: transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.16s ease, background 0.16s ease;
 }
 
-.action-btn:hover {
-  transform: translateY(-2px) scale(1.02);
+/* プライマリボタン（もう一度遊ぶ: Duolingo風ぷっくり3Dボタン） */
+.action-btn.retry-btn {
+  background: var(--color-body-yellow);
+  color: var(--color-mouth-teal);
+  box-shadow: 0 4px 0 #dca812, 0 8px 24px rgba(255, 213, 56, 0.45);
 }
 
-.action-btn:active {
-  transform: scale(0.97);
+.action-btn.retry-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 #dca812, 0 12px 28px rgba(255, 213, 56, 0.6);
 }
 
+.action-btn.retry-btn:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 #dca812, 0 4px 12px rgba(255, 213, 56, 0.3);
+}
+
+/* 𝕏シェアボタン（マットブラック＋ホワイトボーダー） */
 .action-btn.x-share {
   background: #000;
   color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  border: 1.5px solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
 }
 
 .action-btn.x-share:hover {
   background: #111;
-  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.6);
+  border-color: rgba(255, 255, 255, 0.6);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
 }
 
+.action-btn.x-share:active {
+  transform: translateY(1px);
+}
+
+/* コピーボタン（フロストグラス） */
 .action-btn.copy-btn {
-  background: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.14);
   color: #fff;
   border: 1px solid rgba(255, 255, 255, 0.28);
 }
 
 .action-btn.copy-btn:hover {
-  background: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.24);
+  transform: translateY(-2px);
 }
 
-.action-btn.retry-btn {
-  background: var(--color-body-yellow);
-  color: var(--color-mouth-teal);
-  box-shadow: 0 6px 20px var(--color-body-yellow-glow);
-}
-
-.action-btn.retry-btn:hover {
-  box-shadow: 0 8px 26px rgba(255, 213, 56, 0.6);
+.action-btn.copy-btn:active {
+  transform: translateY(1px);
 }

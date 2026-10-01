@@ -90,6 +90,12 @@ export class MusicSequencer {
     }
   }
 
+  public reset(): void {
+    this.stop();
+    this.currentStep = 0;
+    this.currentBar = 0;
+  }
+
   private scheduleLoop = (): void => {
     if (!this.isPlaying) return;
 

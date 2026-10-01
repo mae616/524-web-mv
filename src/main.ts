@@ -314,6 +314,7 @@ class App {
     // 16. もう一度遊ぶ（リトライ）
     this.retryBtn?.addEventListener('click', async () => {
       this.resultOverlay?.classList.remove('active');
+      this.sequencer.reset();
       this.rhythmGame.reset();
       this.syncGameStateToHUD();
       await this.audioEngine.init();
@@ -329,6 +330,7 @@ class App {
    */
   private showResult(result: GameResult): void {
     this.latestResult = result;
+    this.playIcon.textContent = '▶';
 
     if (this.resultBadge) {
       this.resultBadge.textContent = result.isClear ? 'STAGE CLEAR !!' : 'SESSION RESULT';
@@ -353,11 +355,11 @@ class App {
     }
 
     if (this.resultPerfects) {
-      this.resultPerfects.textContent = String(result.perfectCount);
+      this.resultPerfects.textContent = `${result.perfectCount} ✨`;
     }
 
     if (this.resultMisses) {
-      this.resultMisses.textContent = String(result.missCount);
+      this.resultMisses.textContent = `${result.missCount} 💤`;
     }
 
     this.resultOverlay?.classList.add('active');

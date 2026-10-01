@@ -339,6 +339,7 @@ export class RhythmGame {
    */
   public finishEarly(): GameResult {
     this.isCompleted = true;
+    this.sequencer.stop();
     const result = this.calculateResult(false);
     this.onGameRetire?.(result);
     return result;
@@ -349,6 +350,7 @@ export class RhythmGame {
    */
   private triggerGameClear(): void {
     this.isCompleted = true;
+    this.sequencer.stop();
     const result = this.calculateResult(true);
     this.audioEngine.triggerClearVoiceAndFanfare();
     this.character.triggerDance(3.0);
@@ -410,6 +412,19 @@ export class RhythmGame {
    * 毎フレームの更新（ノーツの落下と通過ミス判定、クリア判定）
    */
   public update(dt: number): void {
+    // リザルト表示中または完了時はゲーム進行・ミス判定を完全停止
+    if (this.isCompleted || !this.sequencer.getIsPlaying()) {
+      for (let i = this.floatingScores.length - 1; i >= 0; i--) {
+        const f = this.floatingScores[i];
+        f.y += f.vy * dt;
+        f.alpha -= dt * 1.5;
+        if (f.alpha <= 0) {
+          this.floatingScores.splice(i, 1);
+        }
+      }
+      return;
+    }
+
     const ctx = this.audioEngine.getContext();
     if (!ctx) return;
 
