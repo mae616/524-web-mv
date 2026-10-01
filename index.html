@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="./assets/524_master.jpeg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>524 - Interactive Web MV</title>
+    <link rel="stylesheet" href="./src/style.css" />
+  </head>
+  <body>
+    <!-- メインCanvas -->
+    <canvas id="mv-canvas"></canvas>
+
+    <!-- スタートオーバーレイ（初回ジェスチャーアンロック） -->
+    <div id="start-overlay" class="overlay active">
+      <div class="start-card">
+        <div class="avatar-preview">
+          <img src="./assets/524_master.jpeg" alt="Character 524" class="preview-img" />
+        </div>
+        <h1 class="title">524</h1>
+        <p class="tagline">Interactive Web Music Video</p>
+        <button id="start-btn" class="start-button">
+          <span class="btn-icon">▶</span>
+          <span class="btn-text">WAKE UP 524</span>
+        </button>
+        <p class="hint">触って、引っ張って、音と遊ぼう！</p>
+      </div>
+    </div>
+
+    <!-- UIコントロールHUD（フロートガラスバー） -->
+    <header class="hud-header">
+      <div class="logo-badge">
+        <span class="logo-dot"></span>
+        <span class="logo-text">524 WEB MV</span>
+      </div>
+
+      <div class="mode-selector" role="group" aria-label="再生モード選択">
+        <button class="mode-btn" data-mode="chill">CHILL</button>
+        <button class="mode-btn active" data-mode="groove">GROOVE</button>
+        <button class="mode-btn" data-mode="fever">★ FEVER</button>
+      </div>
+
+      <div class="control-actions">
+        <button id="mute-btn" class="icon-btn" aria-label="音声ミュート切替" title="ミュート (M)">
+          <span id="mute-icon">🔊</span>
+        </button>
+        <button id="play-pause-btn" class="icon-btn" aria-label="再生・一時停止" title="再生/一時停止 (Space)">
+          <span id="play-icon">⏸</span>
+        </button>
+        <button id="fullscreen-btn" class="icon-btn" aria-label="全画面表示" title="全画面表示">
+          <span>⛶</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- 操作ガイドフッター -->
+    <footer class="hud-footer">
+      <div class="guide-item">
+        <span class="key-badge">Drag & Release</span>
+        <span class="guide-label">引っ張ってびよ〜ん</span>
+      </div>
+      <div class="guide-item">
+        <span class="key-badge">Click / Tap</span>
+        <span class="guide-label">ポチャンとしずく</span>
+      </div>
+      <div class="guide-item">
+        <span class="key-badge">1 - 5</span>
+        <span class="guide-label">メロディ演奏</span>
+      </div>
+      <div class="guide-item">
+        <span class="key-badge">Mouse X/Y</span>
+        <span class="guide-label">音響フィルター</span>
+      </div>
+    </footer>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

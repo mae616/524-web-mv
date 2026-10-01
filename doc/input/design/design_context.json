@@ -1,0 +1,39 @@
+{
+  "meta": {
+    "version": 1,
+    "project": "524 Interactive Web MV",
+    "ad": {
+      "concept": "ぽよん",
+      "tagline": "さわって、はずんで、音になる。524とセッションするインタラクティブ・ミュージックビデオ",
+      "material": "マット・ジェリー（手描きのぬくもり×弾力性）",
+      "signature": "引っ張りバウンスポルタメント音、3連アイズ（5-2-4）のビート同期アクション、ドロップレット波紋チャイム"
+    }
+  },
+  "tokens": {
+    "colors": {
+      "bgSky": "#38b6d8",
+      "bgSkyDeep": "#1f7a94",
+      "bgEvening": "#48326e",
+      "bodyYellow": "#ffd538",
+      "bodyShadow": "#e8ba1c",
+      "eyeWhite": "#fffdf6",
+      "eyeOrange": "#f26b38",
+      "mouthTeal": "#1f6475",
+      "shadowBlue": "rgba(24, 82, 102, 0.35)",
+      "highlightCream": "#fffbe8"
+    },
+    "typography": {
+      "fontFamily": "system-ui, -apple-system, 'SF Pro Rounded', 'M PLUS Rounded 1c', sans-serif"
+    }
+  },
+  "pages": [
+    {
+      "name": "MainMV",
+      "path": "/",
+      "viewport": {
+        "desktop": [1440, 900],
+        "mobile": [390, 844]
+      }
+    }
+  ]
+}

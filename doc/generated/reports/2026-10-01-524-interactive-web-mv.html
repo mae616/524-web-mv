@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>524 Interactive Web MV 開発・設計報告レポート</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>mermaid.initialize({ startOnLoad: true, theme: 'neutral' });</script>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #1e293b;
+      --text-sub: #64748b;
+      --accent: #ffd538;
+      --accent-deep: #1f6475;
+      --border: #e2e8f0;
+      --sky: #38b6d8;
+    }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      margin: 0;
+      padding: 40px 20px;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: var(--card-bg);
+      padding: 40px;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+      border: 1px solid var(--border);
+    }
+    h1 {
+      color: var(--accent-deep);
+      border-bottom: 3px solid var(--accent);
+      padding-bottom: 12px;
+      margin-top: 0;
+    }
+    h2 {
+      color: var(--accent-deep);
+      margin-top: 32px;
+      border-left: 4px solid var(--accent-deep);
+      padding-left: 10px;
+    }
+    .lead {
+      font-size: 1.15rem;
+      color: var(--text);
+      background: #f0fdf4;
+      border-left: 4px solid #22c55e;
+      padding: 16px 20px;
+      border-radius: 6px;
+      margin-bottom: 28px;
+    }
+    .mermaid {
+      background: #f1f5f9;
+      padding: 20px;
+      border-radius: 12px;
+      margin: 20px 0;
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+    }
+    th, td {
+      border: 1px solid var(--border);
+      padding: 12px 14px;
+      text-align: left;
+    }
+    th {
+      background: #f8fafc;
+      color: var(--accent-deep);
+      font-weight: 700;
+    }
+    .badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      background: var(--accent);
+      color: var(--accent-deep);
+    }
+    .preview-box {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+      margin: 20px 0;
+    }
+    .preview-card {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      text-align: center;
+    }
+    .preview-card img {
+      max-width: 100%;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    }
+    .preview-card p {
+      margin: 8px 0 0 0;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-sub);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📘 524 Interactive Web MV 開発・設計報告書</h1>
+    <div class="lead">
+      キャラクター「524（ゴー・ツー・フォー）」の愛嬌と魅力をWebの最先端技術で解放！外部音源ファイルに一切依存せず、Web Audio APIによるリアルタイム・プロシージャル・シンセサウンドトラックと、ディズニー12原則＆ジブリ的自然運動（Squash & Stretch・呼吸・スリングショット反動）を完全同期させたインタラクティブ・ミュージックビデオ（Web MV）を構築完了しました。
+    </div>
+
+    <h2>1. システムアーキテクチャ構成図</h2>
+    <div class="mermaid">
+flowchart TB
+    subgraph UI ["ユーザー操作 / 入力レイヤー"]
+        Click["クリック / タップ<br/>(しずく・チャイム発音)"]
+        Drag["ドラッグ＆リリース<br/>(スリングショット・ビヨ〜ン音)"]
+        Move["マウス X/Y 移動<br/>(フィルター・ディレイ変調)"]
+        Keys["キーボード [1-5 / Space / F]<br/>(メロディ演奏・フィーバー)"]
+    end
+
+    subgraph AudioEngine ["Web Audio API 音響エンジン"]
+        Context["AudioContext<br/>(サスペンド自動解除)"]
+        Synth["Synth 音源群<br/>(Kick, Snare, Bass, Pluck, Boing, Drop)"]
+        FX["リアルタイムFX<br/>(Lowpass Filter, Delay, Compressor)"]
+        Analyser["AnalyserNode<br/>(リアルタイムFFT周波数解析)"]
+        Sequencer["MusicSequencer<br/>(BPM制御 / 16ステップ / Chord / Arp)"]
+    end
+
+    subgraph CharacterEngine ["Character 524 物理・描画エンジン"]
+        Body["524 ボディ<br/>(ベジエパス変形 / Squash & Stretch)"]
+        Eyes["3連アイズ [5][2][4]<br/>(視線追従 / 跳ねウェーブ / まばたき)"]
+        Mouth["ティール口<br/>(歌唱・驚き変形)"]
+        Droplets["ドロップレット物理<br/>(重力落下 / 着水波紋シミュレーション)"]
+        Shadow["接地・浮遊影<br/>(高さ連動スケーリング)"]
+    end
+
+    subgraph VisualScene ["MV演出・空間レイヤー"]
+        Sky["スカイ背景パルス<br/>(低音連動 / モード別カラーシフト)"]
+        Lyrics["タイポグラフィ演出<br/>(ビート同期ポップアップ)"]
+        Particles["パーティクル<br/>(星・音符・バブル浮遊)"]
+        Camera["シネマティックカメラ<br/>(ビートズーム / シェイク)"]
+    end
+
+    UI --> AudioEngine
+    UI --> CharacterEngine
+    Sequencer -->|Step / Beat イベント| CharacterEngine
+    Sequencer -->|ビート同期シグナル| VisualScene
+    AudioEngine -->|FFT低音・高音データ| VisualScene
+    AudioEngine -->|音圧・共鳴データ| CharacterEngine
+    CharacterEngine --> Canvas["HTML5 Canvas (60fps/120fps)"]
+    VisualScene --> Canvas
+    </div>
+
+    <h2>2. 実装および検証フロー</h2>
+    <div class="mermaid">
+sequenceDiagram
+    autonumber
+    actor User as ユーザー / ブラウザ
+    participant Engine as AudioEngine & Sequencer
+    participant Char as Character524
+    participant Scene as VisualScene
+    participant Canvas as Render Loop
+
+    User->>Engine: 「WAKE UP 524」タップ (AudioContextアンロック)
+    Engine->>Engine: BGMシーケンス開始 (Kick, Bass, Pluck, Chord)
+    loop 毎フレーム (requestAnimationFrame)
+        Engine->>Canvas: FFT周波数解析データ取得 (Bass, Treble)
+        Engine-->>Char: ビート同期イベント通知 (Downbeat)
+        Char->>Char: Squash & Stretch、目の数字ウェーブ跳ね
+        Scene->>Scene: カメラズーム、背景光パルス、リリック生成
+        User-->>Char: つまんで引っ張る (ドラッグ)
+        User-->>Char: 放す (リリース)
+        Char->>Engine: ビヨ〜ン♪ ポルタメント音トリガー
+        Char->>Char: スリングショット反動振動
+        Canvas->>Canvas: 全要素を60fps高精細描画
+    end
+    </div>
+
+    <h2>3. スクリーンショット・実機レンダリング検証</h2>
+    <div class="preview-box">
+      <div class="preview-card">
+        <img src="../../input/design/assets/screenshot_initial.png" alt="初期画面">
+        <p>① WAKE UP 画面（ガラスモーフィズム）</p>
+      </div>
+      <div class="preview-card">
+        <img src="../../input/design/assets/screenshot_matched.png" alt="原図一致画面">
+        <p>② 原図完全一致（手描きフォルム・手書き524・ティール口）</p>
+      </div>
+      <div class="preview-card">
+        <img src="../../input/design/assets/screenshot_fever.png" alt="フィーバー画面">
+        <p>③ FEVER モード（ネオン＆パーティクル満開）</p>
+      </div>
+    </div>
+
+    <h2>4. 成果物・機能一覧</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>カテゴリ</th>
+          <th>機能・特徴</th>
+          <th>詳細仕様</th>
+          <th>状態</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="badge">Character</span></td>
+          <td>524 物理＆アニメーション</td>
+          <td>原作の手描き感をベジエ曲線で再現。ビート同期Squash & Stretch、視線追従、目の[5][2][4]ウェーブ跳ね、まばたき、ゴム引っ張りスリングショット</td>
+          <td>✅ 完成</td>
+        </tr>
+        <tr>
+          <td><span class="badge">Audio</span></td>
+          <td>完全プロシージャルBGM</td>
+          <td>外部ファイルゼロのWeb Audio API。キック、スネア、ベース、アルペジオ、ドリーミーコード、ポルタメント音（ビヨ〜ン）、しずく音（ポチャン♪）</td>
+          <td>✅ 完成</td>
+        </tr>
+        <tr>
+          <td><span class="badge">Interactive</span></td>
+          <td>体感・操作連動</td>
+          <td>マウスX/Yでの音響フィルター・ディレイ変調、画面タップでのしずく落下＆音階演奏、キーボード(1〜5/Space/F)操作</td>
+          <td>✅ 完成</td>
+        </tr>
+        <tr>
+          <td><span class="badge">Visual</span></td>
+          <td>MV空間演出</td>
+          <td>BPM同期のシネマティックカメラズーム・シェイク、背景スカイパルス、リリックポップアップ、星・音符パーティクル</td>
+          <td>✅ 完成</td>
+        </tr>
+        <tr>
+          <td><span class="badge">A11y & UI</span></td>
+          <td>アクセシビリティ＆UI</td>
+          <td>サウンドミュート(M)、全画面表示、モード切替(Chill/Groove/Fever)、prefers-reduced-motion配慮</td>
+          <td>✅ 完成</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>5. ローカルでの実行・体験方法</h2>
+    <p>開発サーバーはバックグラウンド（ポート 3000）で稼働中です。ブラウザで以下を開いてすぐにお楽しみいただけます：</p>
+    <pre><code>http://localhost:3000/</code></pre>
+  </div>
+</body>
+</html>
