@@ -2,7 +2,7 @@
 <html lang="ja">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="./assets/524_master.jpeg" />
+    <link rel="icon" type="image/svg+xml" href="./assets/524_character.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>524 - Interactive Web MV</title>
     <link rel="stylesheet" href="./src/style.css" />
@@ -15,7 +15,7 @@
     <div id="start-overlay" class="overlay active">
       <div class="start-card">
         <div class="avatar-preview">
-          <img src="./assets/524_master.jpeg" alt="Character 524" class="preview-img" />
+          <img src="./assets/524_character.svg" alt="Character 524" class="preview-img" />
         </div>
         <h1 class="title">524</h1>
         <p class="tagline">Interactive Web Music Video</p>
@@ -23,56 +23,66 @@
           <span class="btn-icon">▶</span>
           <span class="btn-text">WAKE UP 524</span>
         </button>
-        <p class="hint">触って、引っ張って、音と遊ぼう！</p>
+        <p class="hint">さわって、はずんで、音になる</p>
       </div>
     </div>
 
-    <!-- UIコントロールHUD（フロートガラスバー） -->
-    <header class="hud-header">
-      <div class="logo-badge">
-        <span class="logo-dot"></span>
-        <span class="logo-text">524 WEB MV</span>
+    <!-- ミニマルヘッダー -->
+    <header class="hud-top">
+      <div class="brand-pill">
+        <span class="brand-dot"></span>
+        <span class="brand-title">524 WEB MV</span>
       </div>
 
-      <div class="mode-selector" role="group" aria-label="再生モード選択">
-        <button class="mode-btn" data-mode="chill">CHILL</button>
-        <button class="mode-btn active" data-mode="groove">GROOVE</button>
-        <button class="mode-btn" data-mode="fever">★ FEVER</button>
-      </div>
-
-      <div class="control-actions">
-        <button id="mute-btn" class="icon-btn" aria-label="音声ミュート切替" title="ミュート (M)">
+      <div class="top-actions">
+        <button id="mute-btn" class="glass-round-btn" aria-label="音声ミュート切替" title="ミュート (M)">
           <span id="mute-icon">🔊</span>
         </button>
-        <button id="play-pause-btn" class="icon-btn" aria-label="再生・一時停止" title="再生/一時停止 (Space)">
-          <span id="play-icon">⏸</span>
-        </button>
-        <button id="fullscreen-btn" class="icon-btn" aria-label="全画面表示" title="全画面表示">
+        <button id="fullscreen-btn" class="glass-round-btn" aria-label="全画面表示" title="全画面表示">
           <span>⛶</span>
         </button>
       </div>
     </header>
 
-    <!-- 操作ガイドフッター -->
-    <footer class="hud-footer">
-      <div class="guide-item">
-        <span class="key-badge">Drag & Release</span>
-        <span class="guide-label">引っ張ってびよ〜ん</span>
-      </div>
-      <div class="guide-item">
-        <span class="key-badge">Click / Tap</span>
-        <span class="guide-label">ポチャンとしずく</span>
-      </div>
-      <div class="guide-item">
-        <span class="key-badge">1 - 5</span>
-        <span class="guide-label">メロディ演奏</span>
-      </div>
-      <div class="guide-item">
-        <span class="key-badge">Mouse X/Y</span>
-        <span class="guide-label">音響フィルター</span>
-      </div>
-    </footer>
+    <!-- Mobbin参考: 統合フローティング・アイランド（Pill Dock） -->
+    <main class="hud-dock-wrapper">
+      <div class="pill-dock">
+        <!-- 再生/一時停止 ボタン（ぷるぷるイエローボタン） -->
+        <button id="play-pause-btn" class="dock-play-btn" aria-label="再生・一時停止" title="Space">
+          <span id="play-icon">⏸</span>
+        </button>
 
-    <script type="module" src="/src/main.ts"></script>
+        <!-- モード切替セグメント -->
+        <div class="dock-segment-group" role="group" aria-label="グルーヴモード切替">
+          <button class="dock-segment-btn" data-mode="chill">
+            <span class="mode-label">CHILL</span>
+          </button>
+          <button class="dock-segment-btn active" data-mode="groove">
+            <span class="mode-label">GROOVE</span>
+          </button>
+          <button class="dock-segment-btn" data-mode="fever">
+            <span class="mode-label">★ FEVER</span>
+          </button>
+        </div>
+
+        <!-- リアルタイム・ミニイコライザー波形 -->
+        <div class="dock-eq-visualizer" title="オーディオビート波形">
+          <span class="eq-bar eq-bar-1"></span>
+          <span class="eq-bar eq-bar-2"></span>
+          <span class="eq-bar eq-bar-3"></span>
+          <span class="eq-bar eq-bar-4"></span>
+        </div>
+      </div>
+
+      <!-- 操作ヒントチップス（さりげなく提示） -->
+      <div class="hint-chips">
+        <span class="chip"><kbd>Drag</kbd> 引っ張ってびよ〜ん♪</span>
+        <span class="chip"><kbd>Click</kbd> しずくポチャン</span>
+        <span class="chip"><kbd>1-5</kbd> メロディ演奏</span>
+        <span class="chip"><kbd>Mouse</kbd> 音響フィルター</span>
+      </div>
+    </main>
+
+    <script type="module" src="./src/main.ts"></script>
   </body>
 </html>

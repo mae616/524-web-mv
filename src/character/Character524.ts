@@ -89,7 +89,7 @@ export class Character524 {
     const img = new Image();
     const baseUrl = import.meta.env.BASE_URL || './';
     const cleanBase = baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
-    img.src = `${cleanBase}assets/524_character.png`;
+    img.src = `${cleanBase}assets/524_character.svg`;
     img.onload = () => {
       this.charImage = img;
       this.isImageLoaded = true;
@@ -348,26 +348,31 @@ export class Character524 {
         drawHeight
       );
 
-      // まばたきオーバーレイ（まばたき時に目の位置に白い楕円＋ティールの一文字を重ねる）
+      // まばたきオーバーレイ（3つの目が個別に愛らしくパチッと閉じる）
       if (this.isBlinking) {
-        const eyeW = drawWidth * 0.65;
-        const eyeH = drawHeight * 0.35;
-        const eyeTop = -drawHeight * 0.22;
+        // 3つの目の中心位置（原作SVG内の比率）
+        const eyeY = -drawHeight * 0.08;
+        const eyeCentersX = [-drawWidth * 0.24, 0, drawWidth * 0.25];
+        const bubbleR = drawWidth * 0.125;
 
+        // 1. 各目の数字「5」「2」「4」の部分だけを白い泡でパチッとカバー
         ctx.fillStyle = '#FFFDF6';
-        ctx.beginPath();
-        ctx.ellipse(0, eyeTop + eyeH * 0.5, eyeW * 0.48, eyeH * 0.35, 0, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.strokeStyle = this.colors.mouthTeal;
-        ctx.lineWidth = 4;
-        ctx.lineCap = 'round';
-        // 3本の細めた線
-        const lineOffsets = [-eyeW * 0.28, 0, eyeW * 0.28];
-        lineOffsets.forEach((ox) => {
+        eyeCentersX.forEach(cx => {
           ctx.beginPath();
-          ctx.moveTo(ox - 14, eyeTop + eyeH * 0.5);
-          ctx.lineTo(ox + 14, eyeTop + eyeH * 0.5);
+          ctx.arc(cx, eyeY, bubbleR, 0, Math.PI * 2);
+          ctx.fill();
+        });
+
+        // 2. 3つの目にそれぞれ個別の閉じたライン（にっこり目 ^ ^ ^）を描く
+        ctx.strokeStyle = this.colors.mouthTeal;
+        ctx.lineWidth = 3.5;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+
+        eyeCentersX.forEach(cx => {
+          ctx.beginPath();
+          // 笑顔・ウィンク風のアーチ（^）
+          ctx.arc(cx, eyeY + 2, bubbleR * 0.55, Math.PI * 1.15, Math.PI * 1.85, false);
           ctx.stroke();
         });
       }

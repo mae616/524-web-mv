@@ -25,7 +25,8 @@ class App {
   private muteBtn = document.getElementById('mute-btn') as HTMLButtonElement;
   private muteIcon = document.getElementById('mute-icon') as HTMLElement;
   private fullscreenBtn = document.getElementById('fullscreen-btn') as HTMLButtonElement;
-  private modeButtons = document.querySelectorAll<HTMLButtonElement>('.mode-btn');
+  private modeButtons = document.querySelectorAll<HTMLButtonElement>('.dock-segment-btn');
+  private eqBars = document.querySelectorAll<HTMLElement>('.eq-bar');
 
   constructor() {
     this.canvas = document.getElementById('mv-canvas') as HTMLCanvasElement;
@@ -225,6 +226,15 @@ class App {
 
     // オーディオ周波数解析データの取得
     const audioMetrics = this.audioEngine.getAudioMetrics();
+
+    // ドック内のミニイコライザーバーのアニメーション
+    if (this.eqBars.length >= 4) {
+      const isPlaying = this.sequencer.getIsPlaying();
+      this.eqBars[0].style.height = `${isPlaying ? Math.max(4, audioMetrics.bass * 22) : 4}px`;
+      this.eqBars[1].style.height = `${isPlaying ? Math.max(4, audioMetrics.mid * 20) : 4}px`;
+      this.eqBars[2].style.height = `${isPlaying ? Math.max(4, audioMetrics.treble * 18) : 4}px`;
+      this.eqBars[3].style.height = `${isPlaying ? Math.max(4, audioMetrics.overall * 22) : 4}px`;
+    }
 
     // 更新処理
     const mode = this.sequencer.getMode();

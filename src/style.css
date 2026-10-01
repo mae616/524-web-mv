@@ -1,17 +1,20 @@
 /* ============================================================
    524 Interactive Web MV - Style
-   材質: マット・ジェリー（手描きのぬくもり×クリアな空）
+   デザイン: Mobbin参考のフローティング・アイランドUI ＆ マット・ジェリー
    ============================================================ */
 
 :root {
   --color-sky: #38b6d8;
   --color-sky-deep: #1f6475;
   --color-body-yellow: #ffd538;
+  --color-body-yellow-glow: rgba(255, 213, 56, 0.45);
   --color-eye-orange: #f26b38;
   --color-mouth-teal: #1f6475;
   --color-white: #fffdf6;
   --color-shadow: rgba(24, 82, 102, 0.35);
 
+  --dock-bg: rgba(24, 76, 92, 0.55);
+  --dock-border: rgba(255, 255, 255, 0.28);
   --font-family: system-ui, -apple-system, 'SF Pro Rounded', 'M PLUS Rounded 1c', sans-serif;
 }
 
@@ -44,7 +47,7 @@ html, body {
 }
 
 /* ============================================================
-   オーバーレイ（WAKE UP 524）
+   スタートオーバーレイ
    ============================================================ */
 .overlay {
   position: fixed;
@@ -52,9 +55,9 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(31, 100, 117, 0.7);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: rgba(31, 100, 117, 0.72);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   z-index: 50;
   transition: opacity 0.5s cubic-bezier(0.2, 0.8, 0.2, 1), visibility 0.5s;
 }
@@ -70,14 +73,14 @@ html, body {
   flex-direction: column;
   align-items: center;
   text-align: center;
-  padding: 36px 40px;
-  background: rgba(255, 253, 246, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 28px;
-  box-shadow: 0 20px 40px var(--color-shadow);
+  padding: 38px 42px;
+  background: rgba(255, 253, 246, 0.16);
+  border: 1.5px solid rgba(255, 255, 255, 0.35);
+  border-radius: 32px;
+  box-shadow: 0 24px 48px var(--color-shadow);
   max-width: 360px;
   width: 90%;
-  animation: cardFloat 3s ease-in-out infinite alternate;
+  animation: cardFloat 3.2s ease-in-out infinite alternate;
 }
 
 @keyframes cardFloat {
@@ -86,37 +89,40 @@ html, body {
 }
 
 .avatar-preview {
-  width: 110px;
-  height: 110px;
+  width: 116px;
+  height: 116px;
   border-radius: 50%;
   overflow: hidden;
-  box-shadow: 0 8px 24px rgba(24, 82, 102, 0.3);
-  margin-bottom: 18px;
+  box-shadow: 0 10px 28px rgba(24, 82, 102, 0.35);
+  margin-bottom: 20px;
   background: #38b6d8;
-  border: 3px solid #fff;
+  border: 3.5px solid #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .preview-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+  width: 92%;
+  height: 92%;
+  object-fit: contain;
 }
 
 .title {
-  font-size: 38px;
+  font-size: 40px;
   font-weight: 900;
   letter-spacing: 2px;
   color: var(--color-body-yellow);
-  text-shadow: 0 4px 12px rgba(24, 82, 102, 0.3);
+  text-shadow: 0 4px 14px rgba(24, 82, 102, 0.3);
   margin-bottom: 4px;
 }
 
 .tagline {
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--color-white);
-  opacity: 0.9;
-  margin-bottom: 24px;
+  opacity: 0.92;
+  margin-bottom: 26px;
   letter-spacing: 0.5px;
 }
 
@@ -124,7 +130,7 @@ html, body {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  padding: 14px 28px;
+  padding: 15px 32px;
   background: var(--color-body-yellow);
   color: var(--color-mouth-teal);
   border: none;
@@ -133,182 +139,274 @@ html, body {
   font-weight: 800;
   letter-spacing: 1px;
   cursor: pointer;
-  box-shadow: 0 6px 18px rgba(255, 213, 56, 0.4);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0 8px 24px var(--color-body-yellow-glow);
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
 }
 
 .start-button:hover {
-  transform: scale(1.05);
-  box-shadow: 0 8px 24px rgba(255, 213, 56, 0.6);
+  transform: scale(1.06);
+  box-shadow: 0 10px 30px rgba(255, 213, 56, 0.7);
 }
 
 .start-button:active {
-  transform: scale(0.96);
+  transform: scale(0.95);
 }
 
 .hint {
   margin-top: 18px;
-  font-size: 12px;
-  opacity: 0.75;
+  font-size: 13px;
+  font-weight: 500;
+  opacity: 0.85;
 }
 
 /* ============================================================
-   HUD ヘッダー
+   トップヘッダー（ミニマル）
    ============================================================ */
-.hud-header {
+.hud-top {
   position: absolute;
-  top: 16px;
-  left: 20px;
-  right: 20px;
+  top: 18px;
+  left: 24px;
+  right: 24px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   z-index: 10;
-  pointer-events: none; /* 中身のボタンだけクリック可能に */
+  pointer-events: none;
 }
 
-.hud-header > * {
+.hud-top > * {
   pointer-events: auto;
 }
 
-.logo-badge {
+.brand-pill {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 16px;
-  background: rgba(255, 253, 246, 0.18);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  padding: 7px 16px;
+  background: rgba(24, 76, 92, 0.4);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.22);
   border-radius: 30px;
 }
 
-.logo-dot {
-  width: 10px;
-  height: 10px;
+.brand-dot {
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
   background: var(--color-body-yellow);
-  box-shadow: 0 0 8px var(--color-body-yellow);
+  box-shadow: 0 0 10px var(--color-body-yellow);
+  animation: pulseDot 2s ease-in-out infinite;
 }
 
-.logo-text {
+@keyframes pulseDot {
+  0%, 100% { transform: scale(1); opacity: 0.9; }
+  50% { transform: scale(1.3); opacity: 1; }
+}
+
+.brand-title {
   font-size: 13px;
   font-weight: 800;
   letter-spacing: 1px;
 }
 
-.mode-selector {
-  display: flex;
-  gap: 6px;
-  background: rgba(255, 253, 246, 0.18);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  padding: 4px;
-  border-radius: 30px;
-  border: 1px solid rgba(255, 255, 255, 0.25);
-}
-
-.mode-btn {
-  padding: 6px 14px;
-  border: none;
-  background: transparent;
-  color: var(--color-white);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  border-radius: 20px;
-  cursor: pointer;
-  transition: background 0.2s ease, color 0.2s ease;
-}
-
-.mode-btn.active {
-  background: var(--color-white);
-  color: var(--color-mouth-teal);
-  box-shadow: 0 2px 8px rgba(24, 82, 102, 0.2);
-}
-
-.control-actions {
+.top-actions {
   display: flex;
   gap: 8px;
 }
 
-.icon-btn {
+.glass-round-btn {
   width: 38px;
   height: 38px;
   border-radius: 50%;
   border: 1px solid rgba(255, 255, 255, 0.25);
-  background: rgba(255, 253, 246, 0.18);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: rgba(24, 76, 92, 0.4);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   color: var(--color-white);
   font-size: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: transform 0.15s ease, background 0.15s ease;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.2s ease;
 }
 
-.icon-btn:hover {
-  transform: scale(1.08);
-  background: rgba(255, 253, 246, 0.3);
+.glass-round-btn:hover {
+  transform: scale(1.1);
+  background: rgba(24, 76, 92, 0.65);
 }
 
-.icon-btn:active {
-  transform: scale(0.94);
+.glass-round-btn:active {
+  transform: scale(0.92);
 }
 
 /* ============================================================
-   HUD フッター（操作ガイド）
+   Mobbin参考: 統合フローティング・アイランド（Pill Dock）
    ============================================================ */
-.hud-footer {
+.hud-dock-wrapper {
   position: absolute;
-  bottom: 16px;
+  bottom: 24px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
-  gap: 16px;
-  background: rgba(24, 82, 102, 0.35);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  padding: 8px 20px;
-  border-radius: 30px;
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
   z-index: 10;
   pointer-events: none;
 }
 
-.guide-item {
+.hud-dock-wrapper > * {
+  pointer-events: auto;
+}
+
+.pill-dock {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 12px;
+  padding: 8px 14px 8px 10px;
+  background: var(--dock-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--dock-border);
+  border-radius: 50px;
+  box-shadow: 0 16px 36px rgba(18, 55, 68, 0.35);
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-.key-badge {
-  font-size: 10px;
+.pill-dock:hover {
+  transform: translateY(-2px);
+}
+
+/* ぷるぷる再生ボタン */
+.dock-play-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: none;
+  background: var(--color-body-yellow);
+  color: var(--color-mouth-teal);
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 14px var(--color-body-yellow-glow);
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+}
+
+.dock-play-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 18px rgba(255, 213, 56, 0.65);
+}
+
+.dock-play-btn:active {
+  transform: scale(0.92);
+}
+
+/* モード切替セグメントグループ */
+.dock-segment-group {
+  display: flex;
+  gap: 4px;
+  background: rgba(0, 0, 0, 0.16);
+  padding: 4px;
+  border-radius: 30px;
+}
+
+.dock-segment-btn {
+  padding: 8px 16px;
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.dock-segment-btn:hover {
+  color: #fff;
+}
+
+.dock-segment-btn.active {
+  background: var(--color-white);
+  color: var(--color-mouth-teal);
+  box-shadow: 0 2px 8px rgba(18, 55, 68, 0.25);
+  transform: scale(1.02);
+}
+
+.dock-segment-btn[data-mode="fever"].active {
+  background: linear-gradient(135deg, #ffd538, #ff6b8b);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(255, 107, 139, 0.4);
+}
+
+/* ミニイコライザー波形 */
+.dock-eq-visualizer {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 18px;
+  padding: 0 6px;
+}
+
+.eq-bar {
+  width: 3.5px;
+  height: 6px;
+  background: var(--color-body-yellow);
+  border-radius: 3px;
+  transition: height 0.08s ease;
+}
+
+/* 操作ヒントチップス */
+.hint-chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+  opacity: 0.85;
+  transition: opacity 0.2s ease;
+}
+
+.chip {
+  font-size: 11px;
+  font-weight: 600;
+  background: rgba(24, 76, 92, 0.35);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  padding: 4px 10px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.chip kbd {
+  font-size: 9px;
   font-weight: 800;
   background: rgba(255, 255, 255, 0.25);
-  padding: 2px 6px;
-  border-radius: 6px;
-  letter-spacing: 0.5px;
-}
-
-.guide-label {
-  font-size: 11px;
-  opacity: 0.9;
+  padding: 2px 5px;
+  border-radius: 4px;
 }
 
 @media (max-width: 680px) {
-  .hud-footer {
-    display: none; /* スマホでは画面を広く見せる */
-  }
-  .logo-text {
+  .hint-chips {
     display: none;
   }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .start-card {
-    animation: none;
+  .hud-dock-wrapper {
+    bottom: 16px;
+    width: 92%;
+  }
+  .pill-dock {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .dock-segment-btn {
+    padding: 6px 12px;
+    font-size: 11px;
   }
 }
