@@ -17,6 +17,18 @@ export interface Note {
 
 export type Judgment = 'PERFECT' | 'GREAT' | 'GOOD' | 'MISS';
 
+export interface GameResult {
+  isClear: boolean;
+  score: number;
+  maxCombo: number;
+  hearts: number;
+  perfectCount: number;
+  greatCount: number;
+  goodCount: number;
+  missCount: number;
+  rank: 'S' | 'A' | 'B' | 'C';
+}
+
 export interface FloatingScore {
   text: string;
   x: number;
@@ -44,6 +56,17 @@ export class RhythmGame {
   public maxHearts: number = 5;
   public grooveGauge: number = 20; // 0〜100%
 
+  // 判定カウント統計
+  public perfectCount: number = 0;
+  public greatCount: number = 0;
+  public goodCount: number = 0;
+  public missCount: number = 0;
+
+  // ステージ進行
+  public targetBars: number = 16; // 1ステージ16小節（約45秒）
+  public currentBar: number = 0;
+  public isCompleted: boolean = false;
+
   public notes: Note[] = [];
   public floatingScores: FloatingScore[] = [];
 
@@ -52,6 +75,8 @@ export class RhythmGame {
 
   // コールバック
   public onStateChange: (() => void) | null = null;
+  public onGameClear: ((result: GameResult) => void) | null = null;
+  public onGameRetire: ((result: GameResult) => void) | null = null;
 
   constructor(
     audioEngine: AudioEngine,
@@ -72,6 +97,11 @@ export class RhythmGame {
     this.sequencer.onStepCallbacks.push((ev: BeatEvent) => {
       const ctx = this.audioEngine.getContext();
       if (!ctx || !this.sequencer.getIsPlaying()) return;
+
+      this.currentBar = ev.bar;
+
+      // 目標小節に達したら新規ノーツの生成を停止（ステージクリア移行）
+      if (ev.bar >= this.targetBars) return;
 
       const mode = this.sequencer.getMode();
       const targetTime = ctx.currentTime + this.noteSpeed;
@@ -196,6 +226,7 @@ export class RhythmGame {
       const scoreMul = isFever ? 2 : 1;
 
       if (judgment === 'PERFECT') {
+        this.perfectCount++;
         this.score += (note.type === 'bion' ? 500 : 300) * scoreMul;
         this.grooveGauge = Math.min(100, this.grooveGauge + (note.type === 'bion' ? 12 : 7));
         this.character.triggerHappy(0.7);
@@ -203,6 +234,7 @@ export class RhythmGame {
           this.character.triggerDance(0.8);
         }
       } else if (judgment === 'GREAT') {
+        this.greatCount++;
         this.score += (note.type === 'bion' ? 300 : 180) * scoreMul;
         this.grooveGauge = Math.min(100, this.grooveGauge + 5);
         this.character.triggerBounce(1.1);
@@ -210,6 +242,7 @@ export class RhythmGame {
           this.character.triggerDance(0.5);
         }
       } else {
+        this.goodCount++;
         this.score += 80 * scoreMul;
         this.grooveGauge = Math.min(100, this.grooveGauge + 2);
         this.character.triggerBounce(0.8);
@@ -256,6 +289,7 @@ export class RhythmGame {
   }
 
   private handleMiss(): void {
+    this.missCount++;
     this.combo = 0;
     this.hearts = Math.max(0, this.hearts - 1);
     this.grooveGauge = Math.max(0, this.grooveGauge - 12);
@@ -272,6 +306,75 @@ export class RhythmGame {
       this.character.isFeverAura = false;
       this.scene.spawnLyric('KEEP GROOVING !', 'chill', undefined, undefined, true);
     }
+  }
+
+  /**
+   * ゲーム結果の算出（S / A / B / C ランク）
+   */
+  public calculateResult(isClear: boolean): GameResult {
+    let rank: 'S' | 'A' | 'B' | 'C' = 'C';
+    if (this.score >= 8000 || (isClear && this.missCount === 0)) {
+      rank = 'S';
+    } else if (this.score >= 5000) {
+      rank = 'A';
+    } else if (this.score >= 2500) {
+      rank = 'B';
+    }
+
+    return {
+      isClear,
+      score: this.score,
+      maxCombo: this.maxCombo,
+      hearts: this.hearts,
+      perfectCount: this.perfectCount,
+      greatCount: this.greatCount,
+      goodCount: this.goodCount,
+      missCount: this.missCount,
+      rank,
+    };
+  }
+
+  /**
+   * 途中終了（リタイア）
+   */
+  public finishEarly(): GameResult {
+    this.isCompleted = true;
+    const result = this.calculateResult(false);
+    this.onGameRetire?.(result);
+    return result;
+  }
+
+  /**
+   * ステージクリアトリガー
+   */
+  private triggerGameClear(): void {
+    this.isCompleted = true;
+    const result = this.calculateResult(true);
+    this.audioEngine.triggerClearVoiceAndFanfare();
+    this.character.triggerDance(3.0);
+    this.character.isFeverAura = true;
+    this.onGameClear?.(result);
+  }
+
+  /**
+   * 次のゲームへのリセット
+   */
+  public reset(): void {
+    this.score = 0;
+    this.combo = 0;
+    this.maxCombo = 0;
+    this.hearts = 5;
+    this.grooveGauge = 20;
+    this.perfectCount = 0;
+    this.greatCount = 0;
+    this.goodCount = 0;
+    this.missCount = 0;
+    this.currentBar = 0;
+    this.isCompleted = false;
+    this.notes = [];
+    this.floatingScores = [];
+    this.character.isFeverAura = false;
+    this.onStateChange?.();
   }
 
   private triggerFeverUpgrade(): void {
@@ -304,7 +407,7 @@ export class RhythmGame {
   }
 
   /**
-   * 毎フレームの更新（ノーツの落下と通過ミス判定）
+   * 毎フレームの更新（ノーツの落下と通過ミス判定、クリア判定）
    */
   public update(dt: number): void {
     const ctx = this.audioEngine.getContext();
@@ -330,6 +433,11 @@ export class RhythmGame {
       if (n.yProgress > 1.3 || (n.hit && n.yProgress > 1.05)) {
         this.notes.splice(i, 1);
       }
+    }
+
+    // ステージ完走判定（規定小節に達し、全ノーツ通過完了でクリア！）
+    if (!this.isCompleted && this.currentBar >= this.targetBars && this.notes.length === 0 && this.sequencer.getIsPlaying()) {
+      this.triggerGameClear();
     }
 
     // 浮動スコアテキストの更新
@@ -371,10 +479,31 @@ export class RhythmGame {
       }
     }
 
+    // POYON / BION ボタンのDOM位置を取得（線はないが、キーの真上から降ってくる）
+    const poyonEl = typeof document !== 'undefined' ? document.getElementById('sling-poyon-btn') : null;
+    const bionEl = typeof document !== 'undefined' ? document.getElementById('sling-bion-btn') : null;
+
+    let poyonX = width * 0.72;
+    let bionX = width * 0.85;
+
+    if (poyonEl) {
+      const rect = poyonEl.getBoundingClientRect();
+      poyonX = rect.left + rect.width / 2;
+    } else if (lanePositions.length >= 5) {
+      poyonX = lanePositions[4] + 80;
+    }
+
+    if (bionEl) {
+      const rect = bionEl.getBoundingClientRect();
+      bionX = rect.left + rect.width / 2;
+    } else if (lanePositions.length >= 5) {
+      bionX = lanePositions[4] + 160;
+    }
+
     const targetY = calculatedTargetY;
     const spawnY = height * 0.12;
 
-    // 1. ガイドレーン（光の道）の薄い描画
+    // 1. ガイドレーン（光の道）の薄い描画（1〜5のレーンのみ！ POYON・BIONには線を描かない）
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
     ctx.lineWidth = 1.5;
     for (let i = 0; i < 5; i++) {
@@ -385,12 +514,12 @@ export class RhythmGame {
       ctx.stroke();
     }
 
-    // 2. 判定ラインのグロー
+    // 2. 判定ラインのグロー（1〜5キーのライン）
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
     ctx.lineWidth = 2.5;
     ctx.beginPath();
-    ctx.moveTo(lanePositions[0] - 30, targetY);
-    ctx.lineTo(lanePositions[4] + 30, targetY);
+    ctx.moveTo(lanePositions[0] - 25, targetY);
+    ctx.lineTo(lanePositions[4] + 25, targetY);
     ctx.stroke();
 
     // 3. 降ってくるノーツの描画
@@ -426,18 +555,18 @@ export class RhythmGame {
         ctx.restore();
 
       } else if (n.type === 'poyon') {
-        // POYON ノーツ（小引き：スプリングバブル）
-        const nx = width * 0.5;
-        const radius = 24;
+        // POYON ノーツ（線なしで POYON キーの真上から降ってくる）
+        const nx = poyonX;
+        const radius = 22;
 
         ctx.save();
         ctx.fillStyle = '#1dd1a1';
         ctx.shadowColor = '#1dd1a1';
-        ctx.shadowBlur = 14;
+        ctx.shadowBlur = isFever ? 18 : 12;
 
-        // ぷるぷるした楕円
+        // ぷるぷるジェリーバブル
         ctx.beginPath();
-        ctx.ellipse(nx, ny, radius * 1.15, radius * 0.9, 0, 0, Math.PI * 2);
+        ctx.ellipse(nx, ny, radius * 1.15, radius * 0.95, 0, 0, Math.PI * 2);
         ctx.fill();
 
         ctx.strokeStyle = '#ffffff';
@@ -445,36 +574,40 @@ export class RhythmGame {
         ctx.stroke();
 
         ctx.fillStyle = '#ffffff';
-        ctx.font = '900 13px system-ui, sans-serif';
+        ctx.font = '900 11px system-ui, sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText('POYON 🤏', nx, ny);
+        ctx.fillText('POYON', nx, ny - 2);
+        ctx.font = '10px system-ui, sans-serif';
+        ctx.fillText('🤏', nx, ny + 9);
         ctx.restore();
 
       } else if (n.type === 'bion') {
-        // BION ノーツ（大引き：大迫力のスターリング）
-        const nx = width * 0.5;
-        const radius = 34;
+        // BION ノーツ（線なしで BION キーの真上から降ってくる）
+        const nx = bionX;
+        const radius = 26;
 
         ctx.save();
         ctx.fillStyle = '#ffd538';
         ctx.shadowColor = '#ff6b8b';
-        ctx.shadowBlur = 24;
+        ctx.shadowBlur = isFever ? 24 : 16;
 
-        // 二重リング
+        // パワフルなダブルリングバブル
         ctx.beginPath();
         ctx.arc(nx, ny, radius, 0, Math.PI * 2);
         ctx.fill();
 
         ctx.strokeStyle = '#ff6b8b';
-        ctx.lineWidth = 4;
+        ctx.lineWidth = 3.5;
         ctx.stroke();
 
         ctx.fillStyle = '#185869';
-        ctx.font = '900 15px system-ui, sans-serif';
+        ctx.font = '900 12px system-ui, sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText('BION 🚀', nx, ny);
+        ctx.fillText('BION', nx, ny - 3);
+        ctx.font = '11px system-ui, sans-serif';
+        ctx.fillText('🚀', nx, ny + 9);
         ctx.restore();
       }
     });

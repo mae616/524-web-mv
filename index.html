@@ -56,6 +56,9 @@
       </div>
 
       <div class="top-actions">
+        <button id="finish-btn" class="glass-round-btn finish" aria-label="終了・スコア確認" title="終了してスコア確認">
+          <span>🏁</span>
+        </button>
         <button id="mute-btn" class="glass-round-btn" aria-label="音声ミュート切替" title="ミュート (M)">
           <span id="mute-icon">🔊</span>
         </button>
@@ -64,6 +67,57 @@
         </button>
       </div>
     </header>
+
+    <!-- リザルト画面（クリア時 ＆ 途中リタイア時） -->
+    <div id="result-overlay" class="overlay">
+      <div class="result-card">
+        <div id="result-badge" class="result-title-badge clear">STAGE CLEAR !!</div>
+
+        <div class="result-char-preview">
+          <img src="./assets/524_character.png" alt="524 Character" class="result-avatar" />
+          <div id="result-rank" class="rank-circle rank-s">S</div>
+        </div>
+
+        <div class="result-score-block">
+          <div class="result-score-label">FINAL SCORE</div>
+          <div id="result-score-number" class="result-score-num">0</div>
+        </div>
+
+        <div class="result-grid">
+          <div class="result-stat-item">
+            <span class="lbl">MAX COMBO</span>
+            <span id="result-max-combo" class="val">0 🔥</span>
+          </div>
+          <div class="result-stat-item">
+            <span class="lbl">HEARTS</span>
+            <span id="result-hearts" class="val">5 ❤️</span>
+          </div>
+          <div class="result-stat-item">
+            <span class="lbl">PERFECT</span>
+            <span id="result-perfects" class="val">0</span>
+          </div>
+          <div class="result-stat-item">
+            <span class="lbl">MISS</span>
+            <span id="result-misses" class="val">0</span>
+          </div>
+        </div>
+
+        <div class="result-actions">
+          <button id="share-x-btn" class="action-btn x-share">
+            <span class="btn-icon">𝕏</span>
+            <span>Xでスコア共有！</span>
+          </button>
+          <button id="copy-result-btn" class="action-btn copy-btn">
+            <span class="btn-icon">📋</span>
+            <span id="copy-btn-text">コピーして共有</span>
+          </button>
+          <button id="retry-btn" class="action-btn retry-btn">
+            <span class="btn-icon">🔄</span>
+            <span>もう一度遊ぶ</span>
+          </button>
+        </div>
+      </div>
+    </div>
 
     <!-- 音ゲー・リズム操作エリア ＆ Mobbin参考ピルドック -->
     <main class="hud-dock-wrapper">

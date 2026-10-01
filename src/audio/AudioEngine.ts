@@ -159,6 +159,28 @@ export class AudioEngine {
   }
 
   /**
+   * ステージクリア時のファンファーレ ＆ クリアボイス
+   */
+  public triggerClearVoiceAndFanfare(): void {
+    if (!this.synth || !this.ctx) return;
+    this.synth.playClearFanfare(this.ctx.currentTime);
+
+    // Web Speech API によるクリアボイス（ブラウザ標準の合成音声で「ステージクリア！」）
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      try {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance('ステージクリア！おめでとう！');
+        utterance.lang = 'ja-JP';
+        utterance.pitch = 1.35; // 高めで元気なキャラクターボイス
+        utterance.rate = 1.15;
+        window.speechSynthesis.speak(utterance);
+      } catch {
+        // 音声合成が利用できない環境では安全にスキップ
+      }
+    }
+  }
+
+  /**
    * オーディオビジュアライザー用データ（低音/中音/高音の強度を0.0〜1.0で返す）
    */
   public getAudioMetrics(): { bass: number; mid: number; treble: number; overall: number } {

@@ -291,4 +291,55 @@ export class Synth {
     osc.start(time);
     osc.stop(time + 0.15);
   }
+
+  /**
+   * ステージクリア・ファンファーレ ＆ ボイス調ジングル
+   */
+  public playClearFanfare(time: number = this.ctx.currentTime): void {
+    // 祝祭のアルペジオメロディ（C4, E4, G4, C5, E5, G5, C6）
+    const fanfareNotes = [261.6, 329.6, 392.0, 523.3, 659.3, 784.0, 1046.5];
+    fanfareNotes.forEach((freq, i) => {
+      const noteTime = time + i * 0.09;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, noteTime);
+
+      const duration = i === fanfareNotes.length - 1 ? 1.4 : 0.28;
+      gain.gain.setValueAtTime(0.35, noteTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, noteTime + duration);
+
+      osc.connect(gain);
+      gain.connect(this.masterNode);
+
+      osc.start(noteTime);
+      osc.stop(noteTime + duration);
+    });
+
+    // フォルマントボイス調チャイム（歓声のような「イェ〜イ！」）
+    const voiceOsc = this.ctx.createOscillator();
+    const formantFilter = this.ctx.createBiquadFilter();
+    const voiceGain = this.ctx.createGain();
+
+    voiceOsc.type = 'sawtooth';
+    voiceOsc.frequency.setValueAtTime(320, time + 0.65);
+    voiceOsc.frequency.exponentialRampToValueAtTime(440, time + 0.85);
+    voiceOsc.frequency.exponentialRampToValueAtTime(380, time + 1.2);
+
+    formantFilter.type = 'bandpass';
+    formantFilter.frequency.setValueAtTime(900, time + 0.65);
+    formantFilter.Q.setValueAtTime(4.0, time + 0.65);
+
+    voiceGain.gain.setValueAtTime(0.001, time + 0.65);
+    voiceGain.gain.linearRampToValueAtTime(0.35, time + 0.75);
+    voiceGain.gain.exponentialRampToValueAtTime(0.001, time + 1.5);
+
+    voiceOsc.connect(formantFilter);
+    formantFilter.connect(voiceGain);
+    voiceGain.connect(this.masterNode);
+
+    voiceOsc.start(time + 0.65);
+    voiceOsc.stop(time + 1.5);
+  }
 }

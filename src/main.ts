@@ -2,7 +2,7 @@ import { AudioEngine } from './audio/AudioEngine';
 import { MusicSequencer, PlayMode, BeatEvent } from './audio/MusicSequencer';
 import { Character524 } from './character/Character524';
 import { VisualScene } from './visuals/VisualScene';
-import { RhythmGame } from './game/RhythmGame';
+import { RhythmGame, GameResult } from './game/RhythmGame';
 
 class App {
   private canvas: HTMLCanvasElement;
@@ -27,6 +27,7 @@ class App {
   private muteBtn = document.getElementById('mute-btn') as HTMLButtonElement;
   private muteIcon = document.getElementById('mute-icon') as HTMLElement;
   private fullscreenBtn = document.getElementById('fullscreen-btn') as HTMLButtonElement;
+  private finishBtn = document.getElementById('finish-btn') as HTMLButtonElement | null;
   private modeButtons = document.querySelectorAll<HTMLButtonElement>('.dock-segment-btn');
   private eqBars = document.querySelectorAll<HTMLElement>('.eq-bar');
 
@@ -38,6 +39,22 @@ class App {
   private rhythmPads = document.querySelectorAll<HTMLButtonElement>('.rhythm-pad');
   private slingPoyonBtn = document.getElementById('sling-poyon-btn') as HTMLButtonElement | null;
   private slingBionBtn = document.getElementById('sling-bion-btn') as HTMLButtonElement | null;
+
+  // リザルト画面UI要素
+  private resultOverlay = document.getElementById('result-overlay') as HTMLElement | null;
+  private resultBadge = document.getElementById('result-badge') as HTMLElement | null;
+  private resultRank = document.getElementById('result-rank') as HTMLElement | null;
+  private resultScoreNumber = document.getElementById('result-score-number') as HTMLElement | null;
+  private resultMaxCombo = document.getElementById('result-max-combo') as HTMLElement | null;
+  private resultHearts = document.getElementById('result-hearts') as HTMLElement | null;
+  private resultPerfects = document.getElementById('result-perfects') as HTMLElement | null;
+  private resultMisses = document.getElementById('result-misses') as HTMLElement | null;
+  private shareXBtn = document.getElementById('share-x-btn') as HTMLButtonElement | null;
+  private copyResultBtn = document.getElementById('copy-result-btn') as HTMLButtonElement | null;
+  private copyBtnText = document.getElementById('copy-btn-text') as HTMLElement | null;
+  private retryBtn = document.getElementById('retry-btn') as HTMLButtonElement | null;
+
+  private latestResult: GameResult | null = null;
 
   constructor() {
     this.canvas = document.getElementById('mv-canvas') as HTMLCanvasElement;
@@ -265,6 +282,136 @@ class App {
     this.rhythmGame.onStateChange = () => {
       this.syncGameStateToHUD();
     };
+
+    // 12. 終了ボタン（🏁 リタイア・中断リザルト）
+    this.finishBtn?.addEventListener('click', () => {
+      if (this.sequencer.getIsPlaying()) {
+        this.sequencer.stop();
+        this.playIcon.textContent = '▶';
+      }
+      this.rhythmGame.finishEarly();
+    });
+
+    // 13. ゲームクリア＆リタイア時のリザルトモーダル表示
+    this.rhythmGame.onGameClear = (result: GameResult) => {
+      this.showResult(result);
+    };
+
+    this.rhythmGame.onGameRetire = (result: GameResult) => {
+      this.showResult(result);
+    };
+
+    // 14. X（Twitter）共有ボタン
+    this.shareXBtn?.addEventListener('click', () => {
+      this.shareToX();
+    });
+
+    // 15. 結果コピーボタン
+    this.copyResultBtn?.addEventListener('click', () => {
+      this.copyResultText();
+    });
+
+    // 16. もう一度遊ぶ（リトライ）
+    this.retryBtn?.addEventListener('click', async () => {
+      this.resultOverlay?.classList.remove('active');
+      this.rhythmGame.reset();
+      this.syncGameStateToHUD();
+      await this.audioEngine.init();
+      this.sequencer.start();
+      this.playIcon.textContent = '⏸';
+      this.character.triggerBounce(1.5);
+      this.scene.spawnLyric("RETRY ! KEEP GROOVING !", this.sequencer.getMode());
+    });
+  }
+
+  /**
+   * リザルトモーダルの表示（クリア時 ＆ リタイア時）
+   */
+  private showResult(result: GameResult): void {
+    this.latestResult = result;
+
+    if (this.resultBadge) {
+      this.resultBadge.textContent = result.isClear ? 'STAGE CLEAR !!' : 'SESSION RESULT';
+      this.resultBadge.className = `result-title-badge ${result.isClear ? 'clear' : 'retire'}`;
+    }
+
+    if (this.resultRank) {
+      this.resultRank.textContent = result.rank;
+      this.resultRank.className = `rank-circle rank-${result.rank.toLowerCase()}`;
+    }
+
+    if (this.resultScoreNumber) {
+      this.resultScoreNumber.textContent = result.score.toLocaleString();
+    }
+
+    if (this.resultMaxCombo) {
+      this.resultMaxCombo.textContent = `${result.maxCombo} 🔥`;
+    }
+
+    if (this.resultHearts) {
+      this.resultHearts.textContent = `${result.hearts} ❤️`;
+    }
+
+    if (this.resultPerfects) {
+      this.resultPerfects.textContent = String(result.perfectCount);
+    }
+
+    if (this.resultMisses) {
+      this.resultMisses.textContent = String(result.missCount);
+    }
+
+    this.resultOverlay?.classList.add('active');
+  }
+
+  /**
+   * X（Twitter）へのスコア共有インテントURLオープン
+   */
+  private shareToX(): void {
+    const res = this.latestResult;
+    const title = res?.isClear ? '🎉 524 Web MV【STAGE CLEAR!!】' : '🏁 524 Web MV【SESSION RESULT】';
+    const rank = res?.rank || 'C';
+    const score = (res?.score || 0).toLocaleString();
+    const maxCombo = res?.maxCombo || 0;
+    const perfects = res?.perfectCount || 0;
+
+    const text = `${title}
+ランク: [ ${rank} ]
+スコア: ${score} pts (最大コンボ: ${maxCombo} 🔥 / PERFECT: ${perfects})
+524と一緒にチル＆グルーヴ音ゲーを遊んだよ！みんなも最高スコアを目指して挑戦してみてね！✨`;
+
+    const url = 'https://mae616.github.io/524-web-mv/';
+    const hashtags = '524Beat,524_MV,音ゲー';
+    const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}&hashtags=${encodeURIComponent(hashtags)}`;
+    window.open(tweetUrl, '_blank', 'noopener,noreferrer');
+  }
+
+  /**
+   * スコア結果をクリップボードにコピー
+   */
+  private async copyResultText(): Promise<void> {
+    const res = this.latestResult;
+    const title = res?.isClear ? '🎉 524 Web MV【STAGE CLEAR!!】' : '🏁 524 Web MV【SESSION RESULT】';
+    const rank = res?.rank || 'C';
+    const score = (res?.score || 0).toLocaleString();
+    const maxCombo = res?.maxCombo || 0;
+
+    const text = `${title}
+ランク: [ ${rank} ] / スコア: ${score} pts (最大コンボ: ${maxCombo} 🔥)
+https://mae616.github.io/524-web-mv/
+#524Beat #524_MV`;
+
+    try {
+      await navigator.clipboard.writeText(text);
+      if (this.copyBtnText) {
+        const originalText = this.copyBtnText.textContent;
+        this.copyBtnText.textContent = 'コピー完了！✨';
+        setTimeout(() => {
+          if (this.copyBtnText) this.copyBtnText.textContent = originalText;
+        }, 2000);
+      }
+    } catch (err) {
+      console.error('クリップボードコピー失敗:', err);
+    }
   }
 
   /**
